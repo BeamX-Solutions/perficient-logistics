@@ -42,7 +42,7 @@ export default function Hero({ onBookRide, onViewPackages }: HeroProps) {
 
             <div className="relative">
               <img
-                src="https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src="/rectangle-1.png"
                 alt="Professional driver in luxury car"
                 className="rounded-2xl shadow-xl w-full h-[400px] object-cover"
               />
