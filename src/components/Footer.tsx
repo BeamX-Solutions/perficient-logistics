@@ -1,21 +1,16 @@
-import { Circle } from 'lucide-react';
-
 export default function Footer() {
   return (
     <footer className="bg-white border-t-2 border-gray-100 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="relative w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center">
-              <Circle className="w-8 h-8 text-white fill-white" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-              </div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-900">PERFICIENT</div>
-              <div className="text-xs text-gray-600 tracking-wider">LOGISTICS LIMITED</div>
-            </div>
+            <div className="flex items-center">
+              <img 
+                src="/logo--2--2.png" 
+                alt="Perficient Logistics Logo" 
+                className="h-16 object-contain"
+              />
+          </div>
           </div>
 
           <div className="flex flex-col gap-4 text-gray-700">

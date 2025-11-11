@@ -1,11 +1,11 @@
 export default function Gallery() {
   const images = [
-    'https://images.pexels.com/photos/116675/pexels-photo-116675.jpeg?auto=compress&cs=tinysrgb&w=600',
-    'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=600',
-    'https://images.pexels.com/photos/7144175/pexels-photo-7144175.jpeg?auto=compress&cs=tinysrgb&w=600',
-    'https://images.pexels.com/photos/7144231/pexels-photo-7144231.jpeg?auto=compress&cs=tinysrgb&w=600',
-    'https://images.pexels.com/photos/2526127/pexels-photo-2526127.jpeg?auto=compress&cs=tinysrgb&w=600',
-    'https://images.pexels.com/photos/3849168/pexels-photo-3849168.jpeg?auto=compress&cs=tinysrgb&w=600',
+    '/gallery-1.png',
+    '/gallery-2.png',
+    '/gallery-3.png',
+    '/gallery-4.png',
+    '/gallery-5.png',
+    '/gallery-6.png',
   ];
 
   return (
