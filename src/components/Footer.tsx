@@ -1,39 +1,41 @@
-import { Phone } from 'lucide-react';
-
 export function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200 py-12">
+    <footer className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-          <div className="flex items-center gap-3">
-            <img src="/logo--2--2.png" alt="Perficient Logistics" className="h-14 w-auto" />
-          </div>
-            <div className="space-y-2">
-            <div className="flex items-center gap-2 text-gray-700">
-              <Phone className="w-4 h-4" />
-              <span>08052702261, 08106636311</span>
+        <div className="bg-white rounded-2xl border border-gray-200 px-8 py-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div className="flex items-center gap-3">
+              <img src="/logo--2--2.png" alt="Perficient Logistics" className="h-14 w-auto" />
             </div>
-            <a
-              href="mailto:perficientlogisticsltd@gmail.com"
-              className="text-gray-700 hover:text-gray-900 underline block"
-            >
-              perficientlogisticsltd@gmail.com
-            </a>
-          </div>
-          <div className="flex flex-col gap-2 text-gray-700">
-            <a href="#services" className="hover:text-gray-900 transition-colors">
-              Services overview
-            </a>
-            <a href="#privacy" className="hover:text-gray-900 transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#terms" className="hover:text-gray-900 transition-colors">
-              Terms.
-            </a>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-700">
+                <span className="font-medium">08052702261, 08106636311</span>
+              </div>
+              
+              <a href="mailto:perficientlogisticsltd@gmail.com"
+                className="text-gray-700 hover:text-gray-900 underline block"
+              >
+                perficientlogisticsltd@gmail.com
+              </a>
+            </div>
+            
+            <div className="flex flex-col gap-2 text-gray-700">
+              <a href="#services" className="hover:text-gray-900 transition-colors">
+                Services overview
+              </a>
+              <a href="#privacy" className="hover:text-gray-900 transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#terms" className="hover:text-gray-900 transition-colors">
+                Terms.
+              </a>
+            </div>
           </div>
         </div>
-        <a
-          href="https://wa.me/2348052702261"
+        
+        
+        <a href="https://wa.me/2348052702261"
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-8 right-8 w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transition-colors z-40"

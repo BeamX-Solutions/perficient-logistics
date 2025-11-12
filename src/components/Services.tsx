@@ -9,19 +9,19 @@ export function Services({ onSelectService }: ServicesProps) {
     {
       icon: Plane,
       title: 'Airport Shuttle Transfers',
-      description: 'A simple description of this service',
+      description: 'Seamless airport pickups and drop-offs with professional drivers. Enjoy punctual, comfortable rides to and from the airport, ensuring you never miss a flight.',
       type: 'Airport Shuttle Transfers',
     },
     {
       icon: Car,
       title: 'Full-Day Personal Chauffeur',
-      description: 'A simple description of this service',
+      description: 'Experience luxury and convenience with a dedicated chauffeur at your service for the entire day. Perfect for business meetings, city tours, or special occasions.',
       type: 'Full-Day Personal Chauffeur',
     },
     {
       icon: Sparkles,
       title: 'VIP Event & Special Rides',
-      description: 'A simple description of this service',
+      description: 'Make a grand entrance at weddings, corporate events, or special celebrations. Premium vehicles and professional service for your most memorable occasions.',
       type: 'VIP Event & Special Rides',
     },
   ];
@@ -31,19 +31,19 @@ export function Services({ onSelectService }: ServicesProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-3 gap-6 mb-16">
           {services.map((service) => (
-            <div key={service.type} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div key={service.type} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow flex flex-col">
               <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
                 <service.icon className="w-7 h-7 text-blue-500" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">
                 {service.title}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 flex-grow">
                 {service.description}
               </p>
               <button
                 onClick={() => onSelectService(service.type)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors w-full"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors w-full mt-auto"
               >
                 Select This Ride
               </button>

@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Calendar, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface BookingFormProps {
   embedded?: boolean;
+  selectedService?: string;
 }
 
-export function BookingForm({ embedded = false }: BookingFormProps) {
-  const [serviceType, setServiceType] = useState('Airport Shuttle Transfers');
+export function BookingForm({ embedded = false, selectedService }: BookingFormProps) {
+  const [serviceType, setServiceType] = useState(selectedService || 'Airport Shuttle Transfers');
   const [formData, setFormData] = useState({
     pickupLocation: '',
     dropoffLocation: '',
@@ -23,6 +24,13 @@ export function BookingForm({ embedded = false }: BookingFormProps) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Update serviceType when selectedService prop changes
+  useEffect(() => {
+    if (selectedService) {
+      setServiceType(selectedService);
+    }
+  }, [selectedService]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +93,7 @@ export function BookingForm({ embedded = false }: BookingFormProps) {
     <section className={embedded ? 'bg-gray-50 py-8' : ''}>
       <div className={embedded ? 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8' : ''}>
         <div className={embedded ? 'bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-black' : 'border border-black'}>
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-6">
+          <h2 className="text-3xl font-semibold text-gray-900 text-center mb-6">
             Book Your Ride Now
           </h2>
 

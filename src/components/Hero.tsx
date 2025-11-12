@@ -10,52 +10,54 @@ export function Hero({ onBookRideClick, onViewPackagesClick }: HeroProps) {
     <section className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="p-12 lg:p-16">
-              <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <div className="grid md:grid-cols-2 gap-0 items-center">
+            <div className="p-8 lg:p-12">
+              <h2 className="text-5xl lg:text-6xl font-semibold text-gray-900 mb-4 leading-tight">
                 Ride in Comfort.
                 <br />
                 Arrive on Time
               </h2>
-              <p className="text-lg text-gray-700 mb-8">
+              <p className="text-base text-gray-700 mb-6">
                 Reliable car rentals with professional drivers for every occasion.
               </p>
 
-              <div className="flex flex-wrap gap-4 mb-8">
+              <div className="flex flex-wrap gap-3 mb-6">
                 <button
                   onClick={onBookRideClick}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3.5 rounded-lg font-medium text-lg transition-colors"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:shadow-lg hover:scale-105"
                 >
                   Book a Ride Now
                 </button>
                 <button
                   onClick={onViewPackagesClick}
-                  className="bg-white hover:bg-gray-50 text-gray-900 px-8 py-3.5 rounded-lg font-medium text-lg border-2 border-gray-300 transition-colors"
+                  className="bg-white hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-lg font-medium border-2 border-gray-300 transition-all duration-300 hover:border-gray-400 hover:shadow-md hover:scale-105"
                 >
                   View Packages
                 </button>
               </div>
 
-              <div className="bg-gray-50 rounded-xl px-5 py-3.5 inline-flex items-center gap-2">
-                <Flame className="w-5 h-5 text-gray-900" />
+              <div className="bg-blue-50 rounded-lg px-4 py-2.5 inline-flex items-center gap-2 transition-all duration-300 hover:bg-blue-100">
+                <Flame className="w-4 h-4 text-gray-900" />
                 <span className="text-sm font-medium text-gray-900">
-                  Limited slots <span className="font-normal">for weekend transfers!</span>
+                  Limited slots for weekend transfers!
                 </span>
               </div>
             </div>
 
-            <div className="h-full min-h-[500px] relative">
-              <img
-                src="/rectangle-1.png"
-                alt="Professional driver in luxury car"
-                className="w-full h-full object-cover"
-              />
+            <div className="h-full min-h-[400px] md:min-h-[500px] relative p-6 md:p-8">
+              <div className="h-full w-full rounded-2xl overflow-hidden shadow-md transition-transform duration-300 hover:shadow-xl hover:scale-[1.02]">
+                <img
+                  src="/rectangle-1.png"
+                  alt="Professional driver in luxury car"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="text-center mt-16 max-w-3xl mx-auto">
-          <p className="text-lg text-gray-700 leading-relaxed">
+        <div className="text-center mt-12 max-w-3xl mx-auto">
+          <p className="text-base text-gray-700 leading-relaxed">
             At perficient, we strive to provide our clients with the highest level of service, comfort, and safety.
           </p>
         </div>

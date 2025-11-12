@@ -30,40 +30,38 @@ export function Newsletter() {
   return (
     <section className="py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-4 md:gap-6 px-4 md:px-6 py-6 md:py-8 w-full bg-[#1d233a] rounded-lg">
-          <div className="w-full">
-            <h2 className="text-3xl md:text-[30px] font-bold text-white text-center">
+        <div className="flex flex-col items-center gap-6 px-6 py-12 w-full bg-[#1d233a] rounded-2xl">
+          <div className="w-full text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
               Not ready to book yet?
             </h2>
-            <p className="text-3xl md:text-[30px] font-bold text-white text-center mt-3">
+            <p className="text-3xl md:text-4xl font-bold text-white">
               Stay in the loop!
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                required
-                className="flex-1 px-5 py-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap"
-              >
-                {isSubmitting ? 'Sending...' : 'Send request'}
-              </button>
-            </div>
+          <form onSubmit={handleSubmit} className="max-w-2xl mx-auto w-full flex flex-col items-center gap-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+              className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-12 py-4 rounded-xl font-medium transition-colors text-lg"
+            >
+              {isSubmitting ? 'Sending...' : 'Send request'}
+            </button>
 
             {submitStatus === 'success' && (
-              <p className="mt-3 text-green-400 text-center text-sm">Successfully subscribed!</p>
+              <p className="text-green-400 text-center text-sm">Successfully subscribed!</p>
             )}
             {submitStatus === 'error' && (
-              <p className="mt-3 text-red-400 text-center text-sm">Failed to subscribe. Please try again.</p>
+              <p className="text-red-400 text-center text-sm">Failed to subscribe. Please try again.</p>
             )}
           </form>
         </div>
