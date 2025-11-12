@@ -116,13 +116,13 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Pick-up Location
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     name="pickupLocation"
@@ -130,7 +130,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onChange={handleChange}
                     placeholder="Select Pick-up Location"
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                   />
                 </div>
               </div>
@@ -139,15 +139,15 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Pick-up date
                 </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative overflow-hidden">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   <input
                     type="date"
                     name="pickupDate"
                     value={formData.pickupDate}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none"
                   />
                 </div>
               </div>
@@ -156,27 +156,27 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Pick-up time
                 </label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative overflow-hidden">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   <input
                     type="time"
                     name="pickupTime"
                     value={formData.pickupTime}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Drop-off Location
                 </label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     name="dropoffLocation"
@@ -184,7 +184,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onChange={handleChange}
                     placeholder="Select Drop-off Location"
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                   />
                 </div>
               </div>
@@ -193,14 +193,14 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Drop-off date
                 </label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative overflow-hidden">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   <input
                     type="date"
                     name="dropoffDate"
                     value={formData.dropoffDate}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none"
                   />
                 </div>
               </div>
@@ -209,14 +209,14 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 <label className="block text-sm font-medium text-gray-900 mb-2">
                   Drop-off time
                 </label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative overflow-hidden">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                   <input
                     type="time"
                     name="dropoffTime"
                     value={formData.dropoffTime}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none"
                   />
                 </div>
               </div>
