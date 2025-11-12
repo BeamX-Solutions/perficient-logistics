@@ -1,1 +1,0 @@
-export { Framee } from "./Framee";

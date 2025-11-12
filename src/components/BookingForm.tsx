@@ -1,286 +1,336 @@
 import { useState } from 'react';
 import { MapPin, Calendar, Clock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
-export default function BookingForm({ initialServiceType = 'airport' }) {
-  const [serviceType, setServiceType] = useState(initialServiceType);
-  const [rideType, setRideType] = useState('round-trip');
+interface BookingFormProps {
+  embedded?: boolean;
+}
+
+export function BookingForm({ embedded = false }: BookingFormProps) {
+  const [serviceType, setServiceType] = useState('Airport Shuttle Transfers');
   const [formData, setFormData] = useState({
     pickupLocation: '',
+    dropoffLocation: '',
     pickupDate: '',
     pickupTime: '',
-    dropoffLocation: '',
     dropoffDate: '',
     dropoffTime: '',
     passengers: '1',
+    rideType: 'round-trip',
     fullName: '',
     phoneNumber: '',
     specialRequest: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  interface FormData {
-    pickupLocation: string;
-    pickupDate: string;
-    pickupTime: string;
-    dropoffLocation: string;
-    dropoffDate: string;
-    dropoffTime: string;
-    passengers: string;
-    fullName: string;
-    phoneNumber: string;
-    specialRequest: string;
-  }
-
-  interface ServiceType {
-    id: string;
-    label: string;
-  }
-
-  interface BookingFormProps {
-    initialServiceType?: string;
-  }
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Booking submitted:', { serviceType, rideType, ...formData });
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const { error } = await supabase.from('bookings').insert([
+        {
+          service_type: serviceType,
+          pickup_location: formData.pickupLocation,
+          dropoff_location: formData.dropoffLocation,
+          pickup_date: formData.pickupDate,
+          pickup_time: formData.pickupTime,
+          dropoff_date: formData.dropoffDate || null,
+          dropoff_time: formData.dropoffTime || null,
+          passengers: parseInt(formData.passengers),
+          ride_type: formData.rideType,
+          full_name: formData.fullName,
+          phone_number: formData.phoneNumber,
+          special_request: formData.specialRequest || null,
+        },
+      ]);
+
+      if (error) throw error;
+
+      setSubmitStatus('success');
+      setTimeout(() => {
+        setFormData({
+          pickupLocation: '',
+          dropoffLocation: '',
+          pickupDate: '',
+          pickupTime: '',
+          dropoffDate: '',
+          dropoffTime: '',
+          passengers: '1',
+          rideType: 'round-trip',
+          fullName: '',
+          phoneNumber: '',
+          specialRequest: '',
+        });
+        setSubmitStatus('idle');
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev: FormData) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const serviceTypes: ServiceType[] = [
-    { id: 'airport', label: 'Airport Shuttle Transfers' },
-    { id: 'full-day', label: 'Full-Day Personal Chauffeur' },
-    { id: 'vip', label: 'VIP Event & Special Rides' },
-  ];
 
   return (
-    <section id="booking" className="w-full max-w-7xl mx-auto px-4 py-16 bg-gray-50">
-      <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 md:p-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8">
-          Book Your Ride Now
-        </h2>
+    <section className={embedded ? 'bg-gray-50 py-8' : ''}>
+      <div className={embedded ? 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8' : ''}>
+        <div className={embedded ? 'bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-black' : 'border border-black'}>
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-6">
+            Book Your Ride Now
+          </h2>
 
-        <div className="flex flex-wrap gap-2 mb-8 bg-gray-100 p-2 rounded-lg">
-          {serviceTypes.map((service) => (
-            <button
-              key={service.id}
-              onClick={() => setServiceType(service.id)}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                serviceType === service.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {service.label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Pick-up Location
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="pickupLocation"
-                  value={formData.pickupLocation}
-                  onChange={handleInputChange}
-                  placeholder="Select Pick-up Location"
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-                <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Pick-up date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="pickupDate"
-                  value={formData.pickupDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Pick-up time
-              </label>
-              <div className="relative">
-                <input
-                  type="time"
-                  name="pickupTime"
-                  value={formData.pickupTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
+          <div className="bg-blue-50 rounded-2xl p-1 mb-6 flex">
+            {['Airport Shuttle Transfers', 'Full-Day Personal Chauffeur', 'VIP Event & Special Rides'].map(
+              (type) => (
+                <button
+                  key={type}
+                  onClick={() => setServiceType(type)}
+                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors text-sm ${
+                    serviceType === type
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {type}
+                </button>
+              )
+            )}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Drop-off Location
-              </label>
-              <div className="relative">
+          <form onSubmit={handleSubmit}>
+            <div className="grid md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Pick-up Location
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    name="pickupLocation"
+                    value={formData.pickupLocation}
+                    onChange={handleChange}
+                    placeholder="Select Pick-up Location"
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Pick-up date
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="pickupDate"
+                    value={formData.pickupDate}
+                    onChange={handleChange}
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Pick-up time
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="time"
+                    name="pickupTime"
+                    value={formData.pickupTime}
+                    onChange={handleChange}
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Drop-off Location
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    name="dropoffLocation"
+                    value={formData.dropoffLocation}
+                    onChange={handleChange}
+                    placeholder="Select Drop-off Location"
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Drop-off date
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="dropoffDate"
+                    value={formData.dropoffDate}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Drop-off time
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="time"
+                    name="dropoffTime"
+                    value={formData.dropoffTime}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  No. of Passenger
+                </label>
+                <select
+                  name="passengers"
+                  value={formData.passengers}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Ride type
+                </label>
+                <div className="flex gap-6 pt-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="rideType"
+                      value="one-way"
+                      checked={formData.rideType === 'one-way'}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-blue-500"
+                    />
+                    <span className="text-gray-900">One way trip</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="rideType"
+                      value="round-trip"
+                      checked={formData.rideType === 'round-trip'}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-blue-500"
+                    />
+                    <span className="text-gray-900">Round trip</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Full Name
+                </label>
                 <input
                   type="text"
-                  name="dropoffLocation"
-                  value={formData.dropoffLocation}
-                  onChange={handleInputChange}
-                  placeholder="Select Drop-off Location"
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Drop-off date
-              </label>
-              <div className="relative">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Phone Number
+                </label>
                 <input
-                  type="date"
-                  name="dropoffDate"
-                  value={formData.dropoffDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
-            <div>
+            <div className="mb-6">
               <label className="block text-sm font-medium text-gray-900 mb-2">
-                Drop-off time
+                Special Request
               </label>
-              <div className="relative">
-                <input
-                  type="time"
-                  name="dropoffTime"
-                  value={formData.dropoffTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
+              <textarea
+                name="specialRequest"
+                value={formData.specialRequest}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                No. of Passenger
-              </label>
-              <select
-                name="passengers"
-                value={formData.passengers}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+            {submitStatus === 'success' && (
+              <div className="mb-4 p-4 bg-green-50 text-green-800 rounded-lg text-center">
+                Booking submitted successfully!
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-center">
+                Failed to submit booking. Please try again.
+              </div>
+            )}
+
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-12 py-3.5 rounded-lg font-medium text-lg transition-colors"
               >
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
+                {isSubmitting ? 'Booking...' : 'Book Now'}
+              </button>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Ride type
-              </label>
-              <div className="flex items-center gap-6 h-[52px]">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="rideType"
-                    value="one-way"
-                    checked={rideType === 'one-way'}
-                    onChange={(e) => setRideType(e.target.value)}
-                    className="w-5 h-5 text-blue-500 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-900">One way trip</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="rideType"
-                    value="round-trip"
-                    checked={rideType === 'round-trip'}
-                    onChange={(e) => setRideType(e.target.value)}
-                    className="w-5 h-5 text-blue-500 focus:ring-blue-500"
-                  />
-                  <span className="text-gray-900">Round trip</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Special Request
-            </label>
-            <textarea
-              name="specialRequest"
-              value={formData.specialRequest}
-              onChange={handleInputChange}
-              rows={3}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
-            />
-          </div>
-
-          <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white px-12 py-4 rounded-lg font-medium text-lg transition-colors"
-            >
-              Book Now
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-export default function Gallery() {
+export function Gallery() {
   const images = [
     '/gallery-1.png',
     '/gallery-2.png',
@@ -9,14 +9,11 @@ export default function Gallery() {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {images.map((image, index) => (
-            <div
-              key={index}
-              className="relative aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
-            >
+            <div key={index} className="aspect-square overflow-hidden rounded-2xl">
               <img
                 src={image}
                 alt={`Vehicle ${index + 1}`}

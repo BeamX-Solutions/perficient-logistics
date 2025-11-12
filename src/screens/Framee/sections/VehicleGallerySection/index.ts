@@ -1,1 +1,0 @@
-export { VehicleGallerySection } from "./VehicleGallerySection";
