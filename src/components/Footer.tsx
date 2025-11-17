@@ -10,7 +10,7 @@ export function Footer() {
             
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-gray-700">
-                <span className="font-medium">08052702261, 08106636311</span>
+                <span className="font-medium">+2348052702261, +2348106636311</span>
               </div>
               
               <a href="mailto:perficientlogisticsltd@gmail.com"
