@@ -8,14 +8,14 @@ export function Testimonials() {
       avatar: '/img-1.PNG',
     },
     {
-      text: 'Efficient and punctual — booked a 6-person transfer for our team during a conference. The driver was professional, the vehicle arrived on time, and luggage handling was seamless. Booking was easy and the price was fair.',
-      name: 'Mariana Gomez',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+      text: 'I recently rented from them and had an amazing experience. The booking process was super easy, and the staff were really helpful. The car was in top condition, clean and well-maintained, exactly as described. Highly recommended.',
+      name: 'Maybel Oluchi',
+      avatar: '/img-2.png',
     },
     {
-      text: 'Great for business travel. Clean cars, friendly drivers, and they adjusted pickup times to meet our schedule last minute. Reliable communication and safe driving — highly recommended.',
-      name: 'Ethan Carter',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+      text: 'Excellent service. I enjoyed my ride from the airport and the vehicle was really comfortable.',
+      name: 'Victor Kalu',
+      avatar: '/img-3.png',
     },
   ];
 

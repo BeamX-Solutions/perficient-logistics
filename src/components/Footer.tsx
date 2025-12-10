@@ -21,8 +21,8 @@ export function Footer() {
             </div>
             
             <div className="flex flex-col gap-2 text-gray-700">
-              <a href="#services" className="hover:text-gray-900 transition-colors">
-                Services overview
+              <a href="https://perficientlogisticsltd.com/services.html" className="hover:text-gray-900 transition-colors">
+                Services Overview
               </a>
               <a href="#privacy" className="hover:text-gray-900 transition-colors">
                 Privacy Policy

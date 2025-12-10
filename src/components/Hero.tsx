@@ -58,7 +58,7 @@ export function Hero({ onBookRideClick, onViewPackagesClick }: HeroProps) {
 
         <div className="text-center mt-12 max-w-3xl mx-auto">
           <p className="text-base text-gray-700 leading-relaxed">
-            At perficient, we strive to provide our clients with the highest level of service, comfort, and safety.
+            At Perficient, we strive to provide our clients with the highest level of service, comfort, and safety.
           </p>
         </div>
       </div>
