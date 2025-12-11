@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { VipOffers } from './components/VipOffers';
 import { Services } from './components/Services';
 import { Testimonials } from './components/Testimonials';
 import { BookingForm } from './components/BookingForm';
@@ -28,6 +29,7 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Header onBookRideClick={handleBookRideClick} />
       <Hero onBookRideClick={handleBookRideClick} onViewPackagesClick={handleViewPackages} />
+      <VipOffers />
       <Services onSelectService={handleSelectService} />
       <Testimonials />
       <div id="booking-form">

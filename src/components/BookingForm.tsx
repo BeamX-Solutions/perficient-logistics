@@ -57,6 +57,35 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
 
       if (error) throw error;
 
+      // Fire-and-forget call to Netlify function that sends an email via Resend
+      try {
+        const response = await fetch('/.netlify/functions/send-booking-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            serviceType,
+            pickupLocation: formData.pickupLocation,
+            dropoffLocation: formData.dropoffLocation,
+            pickupDate: formData.pickupDate,
+            pickupTime: formData.pickupTime,
+            dropoffDate: formData.dropoffDate,
+            dropoffTime: formData.dropoffTime,
+            passengers: formData.passengers,
+            rideType: formData.rideType,
+            fullName: formData.fullName,
+            phoneNumber: formData.phoneNumber,
+            specialRequest: formData.specialRequest,
+          }),
+        });
+
+        const text = await response.text();
+        console.log('send-booking-email response:', response.status, text);
+      } catch (emailError) {
+        console.error('Error sending booking notification email:', emailError);
+      }
+
       setSubmitStatus('success');
       setTimeout(() => {
         setFormData({
