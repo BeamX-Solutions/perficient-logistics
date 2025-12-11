@@ -22,14 +22,19 @@ export function VipOffers() {
               />
               <div className="absolute inset-0 bg-black/35" />
               <div className="absolute inset-0 flex flex-col justify-between p-4">
-                <div className="inline-flex items-center gap-2 bg-white/90 text-xs font-semibold text-gray-900 rounded-full px-3 py-1 self-start">
-                  <Flame className="w-3 h-3 text-blue-500" />
-                  <span>VIP December Package</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 bg-white/90 text-xs font-semibold text-gray-900 rounded-full px-3 py-1">
+                    <Flame className="w-3 h-3 text-blue-500" />
+                    <span>December Package</span>
+                  </div>
+                  <div className="inline-flex items-center bg-blue-500/90 text-[11px] font-semibold text-white rounded-full px-3 py-1">
+                    <span>Limited slots available</span>
+                  </div>
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-200 font-medium mb-1">Special Offer · Abuja Only</p>
                   <h3 className="text-lg font-semibold text-white leading-snug">
-                    First 20 get 3 SUV full-day rides for the price of 2
+                    Get 3 SUV full-day rides for the price of 2
                   </h3>
                 </div>
               </div>
@@ -164,14 +169,19 @@ export function VipOffers() {
               />
               <div className="absolute inset-0 bg-black/35" />
               <div className="absolute inset-0 flex flex-col justify-between p-4">
-                <div className="inline-flex items-center gap-2 bg-white/90 text-xs font-semibold text-gray-900 rounded-full px-3 py-1 self-start">
-                  <Flame className="w-3 h-3 text-blue-500" />
-                  <span>VIP December Package</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 bg-white/90 text-xs font-semibold text-gray-900 rounded-full px-3 py-1">
+                    <Flame className="w-3 h-3 text-blue-500" />
+                    <span>December Package</span>
+                  </div>
+                  <div className="inline-flex items-center bg-blue-500/90 text-[11px] font-semibold text-white rounded-full px-3 py-1">
+                    <span>Limited slots available</span>
+                  </div>
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-200 font-medium mb-1">Special Offer · Lagos Only</p>
                   <h3 className="text-lg font-semibold text-white leading-snug">
-                    First 20 get 3 premium SUV full-day rides
+                    Get 3 premium SUV full-day rides
                   </h3>
                 </div>
               </div>

@@ -138,7 +138,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                       : 'text-gray-700 hover:text-gray-900'
                   }`}
                 >
-                  {type}
+                  {type === 'VIP Event & Special Rides' ? 'Event & Special Rides' : type}
                 </button>
               )
             )}
