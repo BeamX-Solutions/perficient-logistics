@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export function Footer() {
   return (
     <footer className="bg-gray-50 py-8">
@@ -13,7 +15,8 @@ export function Footer() {
                 <span className="font-medium">+2348052702261, +2348106636311</span>
               </div>
               
-              <a href="mailto:perficientlogisticsltd@gmail.com"
+              <a
+                href="mailto:perficientlogisticsltd@gmail.com"
                 className="text-gray-700 hover:text-gray-900 underline block"
               >
                 perficientlogisticsltd@gmail.com
@@ -24,12 +27,9 @@ export function Footer() {
               <a href="https://perficientlogisticsltd.com/services.html" className="hover:text-gray-900 transition-colors">
                 Services Overview
               </a>
-              <a href="#privacy" className="hover:text-gray-900 transition-colors">
-                Privacy Policy
-              </a>
-              <a href="#terms" className="hover:text-gray-900 transition-colors">
-                Terms.
-              </a>
+              <Link to="/terms" className="hover:text-gray-900 transition-colors">
+                Terms & Rates
+              </Link>
             </div>
           </div>
         </div>
