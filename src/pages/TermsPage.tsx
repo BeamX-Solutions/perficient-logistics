@@ -226,12 +226,6 @@ export function TermsPage() {
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl animate-float" />
           <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl animate-float" />
-          <img
-            src="/ellipse-3.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute top-24 right-8 w-48 opacity-30 hidden md:block animate-float"
-          />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative">
@@ -252,30 +246,62 @@ export function TermsPage() {
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-2">
-                  <a
-                    href="#suvs"
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('suvs');
+                      const offset = 100;
+                      const bodyRect = document.body.getBoundingClientRect().top;
+                      const elementRect = el?.getBoundingClientRect().top || 0;
+                      const elementPosition = elementRect - bodyRect;
+                      const offsetPosition = elementPosition - offset;
+                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }}
                     className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
                   >
                     SUVs
-                  </a>
-                  <a
-                    href="#others"
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('others');
+                      const offset = 100;
+                      const bodyRect = document.body.getBoundingClientRect().top;
+                      const elementRect = el?.getBoundingClientRect().top || 0;
+                      const elementPosition = elementRect - bodyRect;
+                      const offsetPosition = elementPosition - offset;
+                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }}
                     className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
                   >
                     Others
-                  </a>
-                  <a
-                    href="#buses"
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('buses');
+                      const offset = 100;
+                      const bodyRect = document.body.getBoundingClientRect().top;
+                      const elementRect = el?.getBoundingClientRect().top || 0;
+                      const elementPosition = elementRect - bodyRect;
+                      const offsetPosition = elementPosition - offset;
+                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }}
                     className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
                   >
                     Buses
-                  </a>
-                  <a
-                    href="#rules"
+                  </button>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('rules');
+                      const offset = 100;
+                      const bodyRect = document.body.getBoundingClientRect().top;
+                      const elementRect = el?.getBoundingClientRect().top || 0;
+                      const elementPosition = elementRect - bodyRect;
+                      const offsetPosition = elementPosition - offset;
+                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                    }}
                     className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
                   >
                     Rules
-                  </a>
+                  </button>
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -320,12 +346,6 @@ export function TermsPage() {
                     <div className="text-white/90 text-xs mt-0.5">Everything you need before you book.</div>
                   </div>
                 </div>
-                <img
-                  src="/stars.svg"
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute top-8 left-8 w-20 opacity-70 animate-float hidden sm:block"
-                />
               </div>
             </div>
           </Reveal>
@@ -414,27 +434,104 @@ export function TermsPage() {
                 <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
                   <div className="font-semibold text-gray-900">On this page</div>
                   <nav className="mt-3 space-y-2 text-sm">
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#suvs">
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('suvs');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       SUVs Price List
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#others">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('others');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Other Vehicles
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#buses">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('buses');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Buses
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#important">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('important');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Important Information
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#rules">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('rules');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Rules
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#services">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('services');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Other Services
-                    </a>
-                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#note">
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('note');
+                        const offset = 100;
+                        const bodyRect = document.body.getBoundingClientRect().top;
+                        const elementRect = el?.getBoundingClientRect().top || 0;
+                        const elementPosition = elementRect - bodyRect;
+                        const offsetPosition = elementPosition - offset;
+                        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                      }}
+                      className="block w-full text-left text-gray-700 hover:text-blue-600 transition-colors"
+                    >
                       Note
-                    </a>
+                    </button>
                   </nav>
 
                   <div className="mt-5 pt-5 border-t border-gray-200">
