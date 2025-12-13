@@ -1,33 +1,129 @@
+import {
+  ArrowLeft,
+  Bus,
+  Car,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Home,
+  Info,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Reveal } from '../components/Reveal';
 
 type PriceItem = {
   label: string;
   price: string;
 };
 
+function SectionCard({
+  id,
+  title,
+  subtitle,
+  icon,
+  children,
+  delayMs,
+}: {
+  id: string;
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  delayMs: number;
+}) {
+  return (
+    <Reveal delayMs={delayMs} className="h-full">
+      <section
+        id={id}
+        className="h-full bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                {icon}
+              </span>
+              {title}
+            </h2>
+            {subtitle ? <p className="mt-1 text-sm text-gray-600">{subtitle}</p> : null}
+          </div>
+        </div>
+        <div className="mt-4">{children}</div>
+      </section>
+    </Reveal>
+  );
+}
+
 function PriceList({ items }: { items: PriceItem[] }) {
   return (
-    <div className="divide-y divide-gray-200">
-      {items.map((item) => (
-        <div key={item.label} className="flex items-start justify-between gap-6 py-3">
-          <div className="text-gray-800 font-medium leading-snug">{item.label}</div>
-          <div className="shrink-0 font-semibold text-gray-900">{item.price}</div>
+    <div className="rounded-xl border border-gray-200 overflow-hidden">
+      <div className="grid grid-cols-12 bg-gray-50 px-4 py-3">
+        <div className="col-span-8 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+          Vehicle
         </div>
-      ))}
+        <div className="col-span-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+          Rate
+        </div>
+      </div>
+      <div className="divide-y divide-gray-200">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="grid grid-cols-12 gap-3 px-4 py-3 hover:bg-blue-50/60 transition-colors"
+          >
+            <div className="col-span-8 text-gray-900 font-medium leading-snug">
+              {item.label}
+            </div>
+            <div className="col-span-4 text-right font-semibold text-gray-900">
+              {item.price}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function InfoList({ items }: { items: string[] }) {
   return (
-    <ul className="space-y-2 text-gray-700">
+    <ul className="space-y-3 text-gray-700">
       {items.map((item) => (
         <li key={item} className="flex gap-3">
-          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
           <span className="leading-relaxed">{item}</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+function MiniCard({
+  icon,
+  title,
+  description,
+  delayMs,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delayMs: number;
+}) {
+  return (
+    <Reveal delayMs={delayMs}>
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+        <div className="flex items-start gap-3">
+          <div className="h-11 w-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            {icon}
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">{title}</div>
+            <div className="mt-1 text-sm text-gray-600 leading-relaxed">{description}</div>
+          </div>
+        </div>
+      </div>
+    </Reveal>
   );
 }
 
@@ -106,16 +202,18 @@ export function TermsPage() {
             <Link to="/" className="flex items-center gap-3 hover:opacity-90">
               <img src="/logo--2--2.png" alt="Perficient Logistics" className="h-12 w-auto" />
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/"
-                className="text-gray-700 hover:text-gray-900 font-medium"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 sm:px-4 text-sm font-semibold text-gray-700 hover:text-gray-900 bg-white/60 hover:bg-white border border-gray-200/60 hover:border-gray-300 shadow-sm hover:shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               >
-                Back to Home
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Home</span>
               </Link>
               <Link
                 to={{ pathname: '/', hash: '#booking-form' }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40"
               >
                 Book a Ride
               </Link>
@@ -124,72 +222,255 @@ export function TermsPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="bg-white border border-gray-200 rounded-2xl p-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Terms & Rates</h1>
-          <p className="mt-2 text-gray-600">
-            Vehicle price list, hire information, rules, and additional services.
-          </p>
+      <main className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-200/40 blur-3xl animate-float" />
+          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-indigo-200/40 blur-3xl animate-float" />
+          <img
+            src="/ellipse-3.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute top-24 right-8 w-48 opacity-30 hidden md:block animate-float"
+          />
         </div>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">SUVs Price List</h2>
-            <p className="mt-1 text-sm text-gray-600">Rates as provided (₦).</p>
-            <div className="mt-4">
-              <PriceList items={suvPrices} />
-            </div>
-          </section>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative">
+          <Reveal className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+            <div className="grid lg:grid-cols-2 gap-0">
+              <div className="p-8 sm:p-10 flex flex-col">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+                  <Sparkles className="h-4 w-4" />
+                  Transparent pricing & clear rules
+                </div>
 
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">Other Vehicles</h2>
-            <p className="mt-1 text-sm text-gray-600">Rates as provided (₦).</p>
-            <div className="mt-4">
-              <PriceList items={otherVehiclePrices} />
-            </div>
-          </section>
+                <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                  Terms & Rates
+                </h1>
 
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">Buses</h2>
-            <p className="mt-1 text-sm text-gray-600">Rates as provided (₦).</p>
-            <div className="mt-4">
-              <PriceList items={busPrices} />
-            </div>
-          </section>
+                <p className="mt-3 text-gray-700 leading-relaxed max-w-xl">
+                  Everything you need to know about daily hire duration, pricing, rules, and add-on services presented clearly for quick decisions.
+                </p>
 
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">Important Information</h2>
-            <div className="mt-4">
-              <InfoList items={importantInfo} />
-            </div>
-          </section>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <a
+                    href="#suvs"
+                    className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    SUVs
+                  </a>
+                  <a
+                    href="#others"
+                    className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    Others
+                  </a>
+                  <a
+                    href="#buses"
+                    className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    Buses
+                  </a>
+                  <a
+                    href="#rules"
+                    className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    Rules
+                  </a>
+                </div>
 
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">Rules</h2>
-            <div className="mt-4">
-              <InfoList items={rules} />
-            </div>
-          </section>
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <MiniCard
+                    delayMs={100}
+                    icon={<Clock className="h-5 w-5" />}
+                    title="10–12 hours per day"
+                    description="Daily hire duration depends on the selected vehicle." 
+                  />
+                  <MiniCard
+                    delayMs={200}
+                    icon={<CheckCircle2 className="h-5 w-5" />}
+                    title="Driver & fuel included"
+                    description="All hires include a professional driver and fuel." 
+                  />
+                  <MiniCard
+                    delayMs={300}
+                    icon={<ShieldCheck className="h-5 w-5" />}
+                    title="Security options"
+                    description="MOPOL/security escorts available within and outside state." 
+                  />
+                  <MiniCard
+                    delayMs={400}
+                    icon={<FileText className="h-5 w-5" />}
+                    title="Clear cancellation terms"
+                    description="No-shows incur 100%—24h notice reduces charges to 50%." 
+                  />
+                </div>
+              </div>
 
-          <section className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900">Other Services</h2>
-            <div className="mt-4">
-              <InfoList items={otherServices} />
+              <div className="relative min-h-[340px] lg:min-h-full p-6 lg:p-8 flex">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50" />
+                <div className="relative flex-1 rounded-2xl overflow-hidden shadow-md">
+                  <img
+                    src="/gallery-1.png"
+                    alt="Premium vehicle"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-5">
+                    <div className="text-white text-sm font-semibold">Premium rides. Clear rates.</div>
+                    <div className="text-white/90 text-xs mt-0.5">Everything you need before you book.</div>
+                  </div>
+                </div>
+                <img
+                  src="/stars.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute top-8 left-8 w-20 opacity-70 animate-float hidden sm:block"
+                />
+              </div>
             </div>
-          </section>
-        </div>
+          </Reveal>
 
-        <section className="mt-6 bg-white border border-gray-200 rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-900">Note</h2>
-          <div className="mt-4">
-            <InfoList items={notes} />
+          <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-9">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <SectionCard
+                  id="suvs"
+                  title="SUVs Price List"
+                  subtitle="Rates as provided (₦)."
+                  icon={<Car className="h-5 w-5" />}
+                  delayMs={100}
+                >
+                  <PriceList items={suvPrices} />
+                </SectionCard>
+
+                <SectionCard
+                  id="others"
+                  title="Other Vehicles"
+                  subtitle="Rates as provided (₦)."
+                  icon={<Info className="h-5 w-5" />}
+                  delayMs={200}
+                >
+                  <PriceList items={otherVehiclePrices} />
+                </SectionCard>
+
+                <SectionCard
+                  id="buses"
+                  title="Buses"
+                  subtitle="Rates as provided (₦)."
+                  icon={<Bus className="h-5 w-5" />}
+                  delayMs={300}
+                >
+                  <PriceList items={busPrices} />
+                </SectionCard>
+
+                <SectionCard
+                  id="important"
+                  title="Important Information"
+                  icon={<Clock className="h-5 w-5" />}
+                  delayMs={400}
+                >
+                  <InfoList items={importantInfo} />
+                </SectionCard>
+
+                <SectionCard
+                  id="rules"
+                  title="Rules"
+                  icon={<ShieldCheck className="h-5 w-5" />}
+                  delayMs={500}
+                >
+                  <InfoList items={rules} />
+                </SectionCard>
+
+                <SectionCard
+                  id="services"
+                  title="Other Services"
+                  icon={<Sparkles className="h-5 w-5" />}
+                  delayMs={600}
+                >
+                  <InfoList items={otherServices} />
+                </SectionCard>
+              </div>
+
+              <Reveal delayMs={700} className="mt-6">
+                <section
+                  id="note"
+                  className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                      <FileText className="h-5 w-5" />
+                    </span>
+                    Note
+                  </h2>
+                  <div className="mt-4">
+                    <InfoList items={notes} />
+                  </div>
+                </section>
+              </Reveal>
+            </div>
+
+            <aside className="lg:col-span-3">
+              <Reveal delayMs={250} className="sticky top-28">
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                  <div className="font-semibold text-gray-900">On this page</div>
+                  <nav className="mt-3 space-y-2 text-sm">
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#suvs">
+                      SUVs Price List
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#others">
+                      Other Vehicles
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#buses">
+                      Buses
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#important">
+                      Important Information
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#rules">
+                      Rules
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#services">
+                      Other Services
+                    </a>
+                    <a className="block text-gray-700 hover:text-blue-600 transition-colors" href="#note">
+                      Note
+                    </a>
+                  </nav>
+
+                  <div className="mt-5 pt-5 border-t border-gray-200">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      Quick actions
+                    </div>
+                    <div className="mt-3 flex flex-col gap-2">
+                      <Link
+                        to={{ pathname: '/', hash: '#booking-form' }}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                      >
+                        Book now
+                      </Link>
+                      <Link
+                        to="/"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 text-gray-900 px-4 py-2.5 text-sm font-semibold border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      >
+                        <Home className="h-4 w-4" />
+                        Return home
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            </aside>
           </div>
-        </section>
 
-        <div className="mt-10">
-          <Link to="/" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
-            ← Return to Home
-          </Link>
+          <Reveal delayMs={800} className="mt-10">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-xl bg-white hover:bg-gray-50 text-gray-900 px-4 py-2.5 text-sm font-semibold border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Return to Home
+            </Link>
+          </Reveal>
         </div>
       </main>
     </div>

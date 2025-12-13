@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { Autocomplete, useJsApiLoader } from '@react-google-maps/api';
 import { MapPin, Calendar, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+
+const GOOGLE_MAPS_LIBRARIES: ("places")[] = ['places'];
 
 interface BookingFormProps {
   embedded?: boolean;
@@ -24,6 +27,25 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+  const { isLoaded: isGoogleLoaded } = useJsApiLoader({
+    googleMapsApiKey: googleMapsApiKey || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
+  const placesOptions = useMemo<google.maps.places.AutocompleteOptions>(
+    () => ({
+      componentRestrictions: { country: 'ng' },
+      fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+    }),
+    []
+  );
+
+  const [pickupAutocomplete, setPickupAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null);
+  const [dropoffAutocomplete, setDropoffAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null);
 
   // Update serviceType when selectedService prop changes
   useEffect(() => {
@@ -118,6 +140,15 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const applyPlaceToField = (
+    place: google.maps.places.PlaceResult | undefined,
+    field: 'pickupLocation' | 'dropoffLocation'
+  ) => {
+    const value = place?.formatted_address || place?.name || '';
+    if (!value) return;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <section className={embedded ? 'bg-gray-50 py-8' : ''}>
       <div className={embedded ? 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8' : ''}>
@@ -152,15 +183,37 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    name="pickupLocation"
-                    value={formData.pickupLocation}
-                    onChange={handleChange}
-                    placeholder="Select Pick-up Location"
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                  />
+                  {googleMapsApiKey && isGoogleLoaded ? (
+                    <Autocomplete
+                      onLoad={(ac) => setPickupAutocomplete(ac)}
+                      onPlaceChanged={() =>
+                        applyPlaceToField(pickupAutocomplete?.getPlace(), 'pickupLocation')
+                      }
+                      options={placesOptions}
+                    >
+                      <input
+                        type="text"
+                        name="pickupLocation"
+                        value={formData.pickupLocation}
+                        onChange={handleChange}
+                        placeholder="Search pick-up location (Nigeria only)"
+                        autoComplete="off"
+                        required
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      />
+                    </Autocomplete>
+                  ) : (
+                    <input
+                      type="text"
+                      name="pickupLocation"
+                      value={formData.pickupLocation}
+                      onChange={handleChange}
+                      placeholder="Enter pick-up location"
+                      autoComplete="off"
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -206,15 +259,37 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    name="dropoffLocation"
-                    value={formData.dropoffLocation}
-                    onChange={handleChange}
-                    placeholder="Select Drop-off Location"
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-                  />
+                  {googleMapsApiKey && isGoogleLoaded ? (
+                    <Autocomplete
+                      onLoad={(ac) => setDropoffAutocomplete(ac)}
+                      onPlaceChanged={() =>
+                        applyPlaceToField(dropoffAutocomplete?.getPlace(), 'dropoffLocation')
+                      }
+                      options={placesOptions}
+                    >
+                      <input
+                        type="text"
+                        name="dropoffLocation"
+                        value={formData.dropoffLocation}
+                        onChange={handleChange}
+                        placeholder="Search drop-off location (Nigeria only)"
+                        autoComplete="off"
+                        required
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                      />
+                    </Autocomplete>
+                  ) : (
+                    <input
+                      type="text"
+                      name="dropoffLocation"
+                      value={formData.dropoffLocation}
+                      onChange={handleChange}
+                      placeholder="Enter drop-off location"
+                      autoComplete="off"
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    />
+                  )}
                 </div>
               </div>
 
