@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 export function Testimonials() {
   const testimonials = [
     {
-      text: 'Reliable and professional company! They picked me from the airport and the entire exerience was smooth from start to finish. The driver arrived early, was courteous, and helped with my luggage without hesitation. The vehicle was spotless and airconditioned, perfect after an 11-hour flight. Communication was excellent.',
+      text: 'Reliable and professional company! They picked me from the airport and the entire exerience was smooth from start to finish. The driver arrived early, was courteous, and helped with my luggage without hesitation. The vehicle was spotless and airconditioned, perfect after an 11-hour flight.',
       name: 'Obinna Nweke',
       avatar: '/img-1.PNG',
     },
