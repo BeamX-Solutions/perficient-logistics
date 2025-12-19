@@ -76,6 +76,7 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
       price: 295000,
       description: '3 Premium SUV Full-Day Rides',
       location: 'Abuja',
+      paystackPaymentUrl: 'https://paystack.shop/pay/rxmu89q90e',
       whatsappMessage:
         "Hi! I'm interested in the Abuja VIP Package (3 SUV rides for ₦295,000). Can we discuss the details?",
     },
@@ -84,6 +85,7 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
       price: 350000,
       description: '3 Premium SUV Full-Day Rides',
       location: 'Lagos',
+      paystackPaymentUrl: 'https://paystack.shop/pay/jnw8s39pao',
       whatsappMessage:
         "Hi! I'm interested in the Lagos VIP Package (3 SUV rides for ₦350,000). Can we discuss the details?",
     },
@@ -94,6 +96,14 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(details.whatsappMessage)}`;
 
   const handlePaystackPayment = () => {
+    // If this package has a hosted Paystack payment page, route directly to it.
+    if ('paystackPaymentUrl' in details && details.paystackPaymentUrl) {
+      window.open(details.paystackPaymentUrl, '_blank', 'noopener,noreferrer');
+      onClose();
+      return;
+    }
+
+    // Fallback to Paystack inline checkout for packages without a hosted payment page.
     const handler = window.PaystackPop?.setup({
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_xxxxx',
       email: 'customer@email.com',
