@@ -71,12 +71,12 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
   if (!shouldRender) return null;
 
   const packageDetails = {
-    abuja: {
+      abuja: {
       name: 'Abuja VIP Package',
       price: 295000,
       description: '3 Premium SUV Full-Day Rides',
       location: 'Abuja',
-      paystackPaymentUrl: 'https://paystack.shop/pay/rxmu89q90e',
+      paystackPaymentUrl: 'https://paystack.shop/pay/rc42wcfikz',
       whatsappMessage:
         "Hi! I'm interested in the Abuja VIP Package (3 SUV rides for ₦295,000). Can we discuss the details?",
     },
@@ -85,7 +85,7 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
       price: 350000,
       description: '3 Premium SUV Full-Day Rides',
       location: 'Lagos',
-      paystackPaymentUrl: 'https://paystack.shop/pay/jnw8s39pao',
+      paystackPaymentUrl: 'https://paystack.shop/pay/rc42wcfikz',
       whatsappMessage:
         "Hi! I'm interested in the Lagos VIP Package (3 SUV rides for ₦350,000). Can we discuss the details?",
     },
@@ -98,7 +98,8 @@ function PackageModal({ isOpen, onClose, packageType }: PackageModalProps) {
   const handlePaystackPayment = () => {
     // If this package has a hosted Paystack payment page, route directly to it.
     if ('paystackPaymentUrl' in details && details.paystackPaymentUrl) {
-      window.open(details.paystackPaymentUrl, '_blank', 'noopener,noreferrer');
+      const url = `${details.paystackPaymentUrl}?package=${packageType}&price=${details.price}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
       onClose();
       return;
     }
