@@ -47,7 +47,7 @@ export const handler = async (event) => {
 
     const { data, error } = await resend.emails.send({
       from: 'Perficient Logistics <info@perficientlogisticsltd.com>', // Verified sender you already use
-      to: ['ibehchimaobi98@gmail.com', 'obinnanweke15@gmail.com'], // Your inbox
+      to: ['iperficientlogisticsltd@gmail.com', 'obinnanweke15@gmail.com'], // Your inbox
       subject: `New Booking – ${serviceType || 'Ride'} from ${fullName || phoneNumber || 'Unknown customer'}`,
       html: `
         <h2>New Booking Submission</h2>
