@@ -23,6 +23,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     rideType: 'round-trip',
     fullName: '',
     phoneNumber: '',
+    email: '',
     specialRequest: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +74,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           ride_type: formData.rideType,
           full_name: formData.fullName,
           phone_number: formData.phoneNumber,
+          email: formData.email,
           special_request: formData.specialRequest || null,
         },
       ]);
@@ -98,6 +100,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
             rideType: formData.rideType,
             fullName: formData.fullName,
             phoneNumber: formData.phoneNumber,
+            email: formData.email,
             specialRequest: formData.specialRequest,
           }),
         });
@@ -121,6 +124,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           rideType: 'round-trip',
           fullName: '',
           phoneNumber: '',
+          email: '',
           specialRequest: '',
         });
         setSubmitStatus('idle');
@@ -405,6 +409,21 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="you@example.com"
+              />
             </div>
 
             <div className="mb-6">
