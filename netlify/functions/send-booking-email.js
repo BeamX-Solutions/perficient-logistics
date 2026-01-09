@@ -66,7 +66,7 @@ export const handler = async (event) => {
     // Send admin notification email
     const { data: adminData, error: adminError } = await resend.emails.send({
       from: 'Perficient Logistics <info@perficientlogisticsltd.com>',
-      to: ['perficientlogisticsltd@gmail.com', 'obinna.nweke@beamxsolutions.com'],
+      to: ['ibehchimaobi98@gmail.com'],
       subject: `New Booking – ${serviceType || 'Ride'} from ${fullName || phoneNumber || 'Unknown customer'}`,
       html: `
         <h2>New Booking Submission</h2>
