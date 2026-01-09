@@ -97,6 +97,10 @@ export const handler = async (event) => {
         subject: 'Booking Confirmation – Perficient Logistics',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <img src="https://bookings.perficientlogisticsltd.com/logo--2--2.png" alt="Perficient Logistics" style="max-width: 200px; height: auto;" />
+            </div>
+
             <h2 style="color: #1e40af; margin-bottom: 20px;">Booking Confirmation</h2>
 
             <p>Hi ${fullName || 'Valued Customer'},</p>
@@ -116,7 +120,6 @@ export const handler = async (event) => {
             <strong>Perficient Logistics Team</strong></p>
 
             <hr style="margin-top: 40px; border: none; border-top: 1px solid #e5e7eb;" />
-            <p style="font-size: 12px; color: #999; margin-top: 20px;">This is an automated confirmation email. Please do not reply to this email.</p>
           </div>
         `,
       });
