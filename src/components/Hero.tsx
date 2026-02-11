@@ -1,11 +1,11 @@
-import { Flame } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Car } from 'lucide-react';
 
 interface HeroProps {
   onBookRideClick: () => void;
-  onViewPackagesClick: () => void;
 }
 
-export function Hero({ onBookRideClick, onViewPackagesClick }: HeroProps) {
+export function Hero({ onBookRideClick }: HeroProps) {
   return (
     <section className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,18 +28,18 @@ export function Hero({ onBookRideClick, onViewPackagesClick }: HeroProps) {
                 >
                   Book a Ride Now
                 </button>
-                <button
-                  onClick={onViewPackagesClick}
+                <Link
+                  to="/terms"
                   className="bg-white hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-lg font-medium border-2 border-gray-300 transition-all duration-300 hover:border-gray-400 hover:shadow-md hover:scale-105"
                 >
-                  View Packages
-                </button>
+                  View Our Fleet
+                </Link>
               </div>
 
               <div className="bg-blue-50 rounded-lg px-4 py-2.5 inline-flex items-center gap-2 transition-all duration-300 hover:bg-blue-100">
-                <Flame className="w-4 h-4 text-gray-900" />
+                <Car className="w-4 h-4 text-gray-900" />
                 <span className="text-sm font-medium text-gray-900">
-                  Limited slots for weekend transfers!
+                  Professional drivers available 24/7
                 </span>
               </div>
             </div>
@@ -56,7 +56,7 @@ export function Hero({ onBookRideClick, onViewPackagesClick }: HeroProps) {
           </div>
         </div>
 
-        <div className="text-center mt-12 max-w-3xl mx-auto">
+        <div id="about" className="text-center mt-12 max-w-3xl mx-auto">
           <p className="text-base text-gray-700 leading-relaxed">
             At Perficient, we strive to provide our clients with the highest level of service, comfort, and safety.
           </p>

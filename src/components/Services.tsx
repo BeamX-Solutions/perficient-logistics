@@ -45,7 +45,7 @@ export function Services({ onSelectService }: ServicesProps) {
                 onClick={() => onSelectService(service.type)}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors w-full mt-auto"
               >
-                Select This Ride
+                Book This Service
               </button>
             </div>
           ))}

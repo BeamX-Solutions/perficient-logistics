@@ -12,11 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Reveal } from '../components/Reveal';
-
-type PriceItem = {
-  label: string;
-  price: string;
-};
+import { suvPrices, otherVehiclePrices, busPrices, type PriceItem } from '../data/vehicleData';
 
 function SectionCard({
   id,
@@ -128,45 +124,6 @@ function MiniCard({
 }
 
 export function TermsPage() {
-  const suvPrices: PriceItem[] = [
-    { label: 'Toyota Landcruiser Armored / Bulletproof', price: '₦700,000' },
-    { label: 'Toyota Landcruiser 2025 Model', price: '₦550,000' },
-    { label: 'Toyota Landcruiser 2020 Model', price: '₦250,000' },
-    { label: 'Toyota Landcruiser 2020 Upgraded', price: '₦200,000' },
-    { label: 'Toyota Landcruiser 2015 Model', price: '₦150,000' },
-    { label: 'Toyota Prado 2020 Model', price: '₦180,000' },
-    { label: 'Toyota Prado 2020 Upgraded', price: '₦150,000' },
-    { label: 'Toyota Prado 2018 Model', price: '₦130,000' },
-    { label: 'Toyota Prado 2017 Model', price: '₦100,000' },
-    { label: 'Lexus LX 570 2020 Model', price: '₦350,000' },
-    { label: 'Lexus LX 570 2014 Model', price: '₦100,000' },
-    { label: 'Lexus GX 460 2019 Model', price: '₦160,000' },
-    { label: 'G-Wagon Benz 2023', price: '₦1,500,000' },
-    { label: 'Range Rover 2020', price: '₦800,000' },
-    { label: 'Toyota Hilux 2014 Model', price: '₦120,000' },
-    { label: 'Toyota Hilux 2020 Model', price: '₦170,000' },
-    { label: 'Toyota Hilux 2024 Model', price: '₦250,000' },
-  ];
-
-  const otherVehiclePrices: PriceItem[] = [
-    { label: 'Range Rover', price: '₦850,000' },
-    { label: 'Rolls Royce', price: '₦2,500,000' },
-    { label: 'Mercedes Benz Sprinter Bus', price: '₦2,000,000' },
-    { label: 'Benz S550', price: '₦580,000' },
-    { label: 'Benz GL 550 2015 Model', price: '₦550,000' },
-    { label: 'Toyota Camry 2016 Model', price: '₦100,000' },
-    { label: 'Toyota Camry 2014 Model', price: '₦80,000' },
-    { label: 'Toyota Avalon 2015 Model', price: '₦100,000' },
-    { label: 'Toyota Corolla 2015', price: '₦80,000' },
-  ];
-
-  const busPrices: PriceItem[] = [
-    { label: 'Toyota Hiace Bus High Roof Executive 2021', price: '₦180,000' },
-    { label: 'Toyota Hiace Bus High Roof Executive', price: '₦150,000' },
-    { label: 'Toyota Hiace Bus Flat Roof', price: '₦130,000' },
-    { label: 'Toyota Coaster Bus (New Model)', price: '₦200,000' },
-  ];
-
   const importantInfo: string[] = [
     'Duration of hire per day: 10/12 hours (depending on the vehicle).',
     'Extra charge for movements after 10/12 hours expires. Rate afterwards will be charged per hour and will vary based on vehicle.',

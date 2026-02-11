@@ -7,14 +7,9 @@ import { Hero } from '../components/Hero';
 import { Newsletter } from '../components/Newsletter';
 import { Services } from '../components/Services';
 import { Testimonials } from '../components/Testimonials';
-import { VipOffers } from '../components/VipOffers';
 
 export function HomePage() {
   const [selectedService, setSelectedService] = useState<string>('Airport Shuttle Transfers');
-
-  const handleViewPackages = () => {
-    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   const handleBookRideClick = () => {
     document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -28,13 +23,12 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header onBookRideClick={handleBookRideClick} />
-      <Hero onBookRideClick={handleBookRideClick} onViewPackagesClick={handleViewPackages} />
-      <VipOffers />
+      <Hero onBookRideClick={handleBookRideClick} />
       <Services onSelectService={handleSelectService} />
-      <Testimonials />
       <div id="booking-form">
         <BookingForm embedded={true} selectedService={selectedService} />
       </div>
+      <Testimonials />
       <Newsletter />
       <Gallery />
       <Footer />

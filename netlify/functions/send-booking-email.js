@@ -31,6 +31,8 @@ export const handler = async (event) => {
       dropoffTime,
       passengers,
       rideType,
+      vehicleCategory,
+      selectedVehicle,
       fullName,
       phoneNumber,
       email,
@@ -49,6 +51,8 @@ export const handler = async (event) => {
     const bookingDetails = `
       <h3 style="color: #333;">Booking Details</h3>
       <p><strong>Service Type:</strong> ${serviceType || 'N/A'}</p>
+      <p><strong>Vehicle Category:</strong> ${vehicleCategory || 'N/A'}</p>
+      <p><strong>Selected Vehicle:</strong> ${selectedVehicle || 'No specific vehicle selected'}</p>
       <p><strong>Passengers:</strong> ${passengers || 'N/A'}</p>
       <p><strong>Ride Type:</strong> ${rideType || 'N/A'}</p>
       <hr />
@@ -67,7 +71,7 @@ export const handler = async (event) => {
     const { data: adminData, error: adminError } = await resend.emails.send({
       from: 'Perficient Logistics <info@perficientlogisticsltd.com>',
       to: ['perficientlogisticsltd@gmail.com', 'obinna.nweke@beamxsolutions.com'],
-      subject: `New Booking – ${serviceType || 'Ride'} from ${fullName || phoneNumber || 'Unknown customer'}`,
+      subject: `New Booking – ${serviceType || 'Ride'} (${vehicleCategory || 'No category'}) from ${fullName || phoneNumber || 'Unknown customer'}`,
       html: `
         <h2>New Booking Submission</h2>
         <p><strong>Full Name:</strong> ${fullName || 'N/A'}</p>

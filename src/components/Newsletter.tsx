@@ -54,7 +54,7 @@ export function Newsletter() {
               disabled={isSubmitting}
               className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-12 py-4 rounded-xl font-medium transition-colors text-lg"
             >
-              {isSubmitting ? 'Sending...' : 'Send request'}
+              {isSubmitting ? 'Subscribing...' : 'Subscribe'}
             </button>
 
             {submitStatus === 'success' && (
