@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   MapPin,
@@ -16,7 +16,6 @@ import {
   ExternalLink,
   CheckCircle2,
   MessageCircle,
-  Loader2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { vehicleCategories } from '../data/vehicleData';
@@ -91,15 +90,9 @@ function getVehiclePrice(categoryId: string, vehicleLabel: string): string | nul
   return vehicle?.price || null;
 }
 
-// ── Mapbox Geocoding ──
+// ── Google Places Autocomplete (JavaScript SDK) ──
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-
-interface MapboxFeature {
-  id: string;
-  place_name: string;
-  center: [number, number]; // [lon, lat]
-}
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined;
 
 interface LatLon {
   lat: number;
@@ -117,13 +110,40 @@ function haversineDistance(a: LatLon, b: LatLon): number {
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
-function useDebounce(value: string, delay: number): string {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
+// Load Google Maps script once
+let googleMapsLoaded = false;
+let googleMapsLoadPromise: Promise<void> | null = null;
+
+function loadGoogleMapsScript(): Promise<void> {
+  if (googleMapsLoaded && window.google?.maps?.places) return Promise.resolve();
+  if (googleMapsLoadPromise) return googleMapsLoadPromise;
+
+  googleMapsLoadPromise = new Promise((resolve, reject) => {
+    if (window.google?.maps?.places) {
+      googleMapsLoaded = true;
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&libraries=places&language=en`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      googleMapsLoaded = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error('Failed to load Google Maps'));
+    document.head.appendChild(script);
+  });
+
+  return googleMapsLoadPromise;
+}
+
+// Extend Window for google types
+declare global {
+  interface Window {
+    google: typeof google;
+  }
 }
 
 function LocationSearchInput({
@@ -139,133 +159,78 @@ function LocationSearchInput({
   placeholder: string;
   showError: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
-  const [results, setResults] = useState<MapboxFeature[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  const debouncedQuery = useDebounce(inputValue, 300);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [inputValue, setInputValue] = useState(value);
+  const [isReady, setIsReady] = useState(false);
 
   // Sync external value changes (e.g. form reset)
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
-  // Fetch from Mapbox Geocoding API
-  const fetchLocations = useCallback(async (query: string) => {
-    if (query.length < 3 || !MAPBOX_TOKEN) {
-      setResults([]);
-      return;
-    }
-
-    // Cancel previous request
-    if (abortRef.current) abortRef.current.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsLoading(true);
-    try {
-      const encoded = encodeURIComponent(query);
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?access_token=${MAPBOX_TOKEN}&country=ng&limit=5&types=address,poi,place,locality,neighborhood&language=en`,
-        { signal: controller.signal }
-      );
-      if (!res.ok) throw new Error('Mapbox request failed');
-      const data = await res.json();
-      setResults(data.features || []);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return;
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Load Google Maps SDK and attach autocomplete
   useEffect(() => {
-    if (isOpen) fetchLocations(debouncedQuery);
-  }, [debouncedQuery, isOpen, fetchLocations]);
+    if (!GOOGLE_MAPS_KEY || !inputRef.current) return;
 
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+    let cancelled = false;
+
+    loadGoogleMapsScript().then(() => {
+      if (cancelled || !inputRef.current || autocompleteRef.current) return;
+
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: 'ng' },
+        fields: ['formatted_address', 'geometry', 'name'],
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place) return;
+
+        const displayName = place.formatted_address || place.name || '';
+        setInputValue(displayName);
+        onChange(displayName);
+
+        if (place.geometry?.location) {
+          onCoordinatesChange?.({
+            lat: place.geometry.location.lat(),
+            lon: place.geometry.location.lng(),
+          });
+        } else {
+          onCoordinatesChange?.(null);
+        }
+      });
+
+      autocompleteRef.current = autocomplete;
+      setIsReady(true);
+    });
+
+    return () => {
+      cancelled = true;
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [onChange, onCoordinatesChange]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputValue(val);
     onChange(val);
     onCoordinatesChange?.(null);
-    if (!isOpen) setIsOpen(true);
   };
-
-  const handleFocus = () => {
-    setIsOpen(true);
-  };
-
-  const handleSelect = (feature: MapboxFeature) => {
-    onChange(feature.place_name);
-    setInputValue(feature.place_name);
-    onCoordinatesChange?.({ lat: feature.center[1], lon: feature.center[0] });
-    setIsOpen(false);
-    setResults([]);
-    inputRef.current?.blur();
-  };
-
-  const showDropdown = isOpen && (results.length > 0 || isLoading || inputValue.length >= 3);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
       <input
         ref={inputRef}
         type="text"
         value={inputValue}
         onChange={handleInputChange}
-        onFocus={handleFocus}
-        placeholder={placeholder}
+        placeholder={isReady ? placeholder : 'Loading locations...'}
         autoComplete="off"
         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base ${
           showError && !value ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
         }`}
       />
-
-      {showDropdown && (
-        <div className="absolute z-30 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-          {isLoading && (
-            <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-500">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Searching locations...
-            </div>
-          )}
-          {!isLoading && results.length === 0 && inputValue.length >= 3 && (
-            <div className="px-4 py-3 text-sm text-gray-500">
-              No results found. You can type a custom address.
-            </div>
-          )}
-          {results.map((feature) => (
-            <button
-              key={feature.id}
-              type="button"
-              onClick={() => handleSelect(feature)}
-              className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors text-gray-700 border-b border-gray-100 last:border-0"
-            >
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                <span>{feature.place_name}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -1249,6 +1214,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
             phoneNumber: formData.phoneNumber,
             email: formData.email,
             specialRequest: formData.specialRequest,
+            estimatedDistance: estimatedDistance ? Math.round(estimatedDistance) : null,
           }),
         });
 

@@ -28,7 +28,6 @@ export const handler = async (event) => {
       pickupDate,
       pickupTime,
       dropoffDate,
-      dropoffTime,
       passengers,
       rideType,
       vehicleCategory,
@@ -37,6 +36,7 @@ export const handler = async (event) => {
       phoneNumber,
       email,
       specialRequest,
+      estimatedDistance,
       botField,
     } = body;
 
@@ -61,7 +61,7 @@ export const handler = async (event) => {
       <p><strong>Pickup Time:</strong> ${pickupTime || 'N/A'}</p>
       <p><strong>Dropoff Location:</strong> ${dropoffLocation || 'N/A'}</p>
       <p><strong>Dropoff Date:</strong> ${dropoffDate || 'N/A'}</p>
-      <p><strong>Dropoff Time:</strong> ${dropoffTime || 'N/A'}</p>
+      ${estimatedDistance ? `<p><strong>Estimated Distance:</strong> ${estimatedDistance} km</p>` : ''}
       <hr />
       <p><strong>Special Request:</strong></p>
       <p>${specialRequest ? specialRequest.replace(/\n/g, '<br />') : 'None'}</p>
