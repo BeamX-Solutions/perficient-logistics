@@ -187,7 +187,14 @@ function LocationSearchInput({
         const place = autocomplete.getPlace();
         if (!place) return;
 
-        const displayName = place.formatted_address || place.name || '';
+        // Combine place name with address so "Eti-Osa Local Government" doesn't
+        // get replaced by just the street address
+        const name = place.name || '';
+        const address = place.formatted_address || '';
+        const displayName =
+          name && address && !address.toLowerCase().startsWith(name.toLowerCase())
+            ? `${name}, ${address}`
+            : address || name;
         setInputValue(displayName);
         onChange(displayName);
 
