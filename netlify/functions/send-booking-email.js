@@ -37,6 +37,11 @@ export const handler = async (event) => {
       email,
       specialRequest,
       estimatedDistance,
+      city,
+      reference,
+      flightNumber,
+      duration,
+      experience,
       botField,
     } = body;
 
@@ -50,7 +55,12 @@ export const handler = async (event) => {
 
     const bookingDetails = `
       <h3 style="color: #333;">Booking Details</h3>
+      ${reference ? `<p><strong>Reference:</strong> ${reference}</p>` : ''}
+      ${city ? `<p><strong>City:</strong> ${city}</p>` : ''}
       <p><strong>Service Type:</strong> ${serviceType || 'N/A'}</p>
+      ${flightNumber ? `<p><strong>Flight Number:</strong> ${flightNumber}</p>` : ''}
+      ${duration ? `<p><strong>Duration:</strong> ${duration}</p>` : ''}
+      ${experience ? `<p><strong>Experience:</strong> ${experience}</p>` : ''}
       <p><strong>Vehicle Category:</strong> ${vehicleCategory || 'N/A'}</p>
       <p><strong>Selected Vehicle:</strong> ${selectedVehicle || 'No specific vehicle selected'}</p>
       <p><strong>Passengers:</strong> ${passengers || 'N/A'}</p>
@@ -61,7 +71,7 @@ export const handler = async (event) => {
       <p><strong>Pickup Time:</strong> ${pickupTime || 'N/A'}</p>
       <p><strong>Dropoff Location:</strong> ${dropoffLocation || 'N/A'}</p>
       <p><strong>Dropoff Date:</strong> ${dropoffDate || 'N/A'}</p>
-      ${estimatedDistance ? `<p><strong>Estimated Distance:</strong> ${estimatedDistance} km</p>` : ''}
+      ${estimatedDistance ? `<p><strong>Estimated Distance:</strong> ${typeof estimatedDistance === 'number' ? `${estimatedDistance} km` : estimatedDistance}</p>` : ''}
       <hr />
       <p><strong>Special Request:</strong></p>
       <p>${specialRequest ? specialRequest.replace(/\n/g, '<br />') : 'None'}</p>
@@ -71,7 +81,7 @@ export const handler = async (event) => {
     const { data: adminData, error: adminError } = await resend.emails.send({
       from: 'Perficient Logistics <info@perficientlogisticsltd.com>',
       to: ['perficientlogisticsltd@gmail.com', 'obinna.nweke@beamxsolutions.com'],
-      subject: `New Booking – ${serviceType || 'Ride'} (${vehicleCategory || 'No category'}) from ${fullName || phoneNumber || 'Unknown customer'}`,
+      subject: `New Booking${reference ? ` ${reference}` : ''} – ${serviceType || 'Ride'}${city ? `, ${city}` : ''} (${vehicleCategory || 'No category'}) from ${fullName || phoneNumber || 'Unknown customer'}`,
       html: `
         <h2>New Booking Submission</h2>
         <p><strong>Full Name:</strong> ${fullName || 'N/A'}</p>

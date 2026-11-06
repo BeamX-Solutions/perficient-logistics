@@ -1,26 +1,177 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+  --color-sky: #89ccfb;
+  --color-sky-deep: #2f7fbf;
+  --color-sky-mist: #e6f4fe;
+  --color-ink: #0a0f16;
+  --color-ink-2: #111823;
+  --color-ink-3: #1a2330;
+  --color-ivory: #f5f1ea;
+  --color-stone: #9aa3ad;
 
-@layer base {
-  h1, h2, h3, h4, h5, h6, button {
-    font-family: 'Poppins', sans-serif;
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "Jost", ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion tokens. Built in CSS curves are too weak; these have intent. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --animate-marquee: marquee 60s linear infinite;
+  /* Rare, editorial entrances (hero, scroll reveals) */
+  --animate-rise: rise 900ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  /* Hero photograph settles into place rather than sliding */
+  --animate-settle: settle 1.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+  /* Content swaps users trigger repeatedly (tabs, carousels, form states) */
+  --animate-swap: swap 360ms cubic-bezier(0.23, 1, 0.32, 1) both;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
-
-  body, p, span, a, input, textarea, select, label {
-    font-family: 'Roboto', sans-serif;
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  input[type="date"],
-  input[type="time"] {
-    @apply min-h-[44px];
-    font-size: 16px;
+  @keyframes settle {
+    from { opacity: 0; transform: scale(1.04); }
+    to { opacity: 1; transform: scale(1); }
   }
-
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
-    @apply cursor-pointer;
+  @keyframes swap {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
   }
 }
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+    /* Locking scroll for the drawer should not shift the page sideways */
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-ink font-sans font-light text-ivory antialiased;
+  }
+  ::selection {
+    background: var(--color-sky);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-sky);
+    outline-offset: 4px;
+  }
+  input,
+  select,
+  textarea {
+    color-scheme: dark;
+  }
+  select option {
+    background: var(--color-ink-2);
+    color: var(--color-ivory);
+  }
+}
+
+/* Small capitals label and other brand utilities */
+@utility eyebrow {
+  @apply font-sans text-[0.68rem] font-normal uppercase tracking-[0.42em];
+}
+@utility display {
+  @apply font-display font-light leading-[0.92] tracking-[-0.02em];
+}
+@utility hairline {
+  @apply border-ivory/15;
+}
+@utility field {
+  @apply w-full appearance-none border-0 border-b border-ivory/20 bg-transparent px-0 pb-2 pt-1 font-display text-xl text-ivory transition-colors duration-200 placeholder:text-ivory/30 focus:border-sky focus:outline-none;
+}
+@utility field-label {
+  @apply eyebrow mb-2 block text-ivory/50;
+}
+/* Every pressable surface scales slightly on press so it feels heard. */
+@utility press {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: 200ms, 200ms, 200ms, 200ms, 160ms;
+  transition-timing-function: ease, ease, ease, ease, var(--ease-out);
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+@utility btn-sky {
+  @apply press inline-flex items-center justify-center gap-3 bg-sky px-8 py-4 font-sans text-[0.72rem] font-medium uppercase tracking-[0.32em] text-ink hover:bg-ivory disabled:cursor-not-allowed disabled:opacity-40;
+}
+@utility btn-line {
+  @apply press inline-flex items-center justify-center gap-3 border border-ivory/30 px-8 py-4 font-sans text-[0.72rem] font-normal uppercase tracking-[0.32em] text-ivory hover:border-sky hover:text-sky;
+}
+@utility link-underline {
+  @apply relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:origin-left hover:after:scale-x-100;
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 800ms var(--ease-out), transform 800ms var(--ease-out);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Grain overlay for a printed feel */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Outlined display text */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(245, 241, 234, 0.35);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(78%) sepia(30%) saturate(900%) hue-rotate(175deg);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+/* Reduced motion means gentler, not none: keep the fades, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { transform: none; transition: opacity 400ms ease; }
+  .animate-marquee { animation: none; }
+  .animate-rise, .animate-settle, .animate-swap { animation-name: fade; animation-duration: 300ms; }
+}
+
+/* Google Places suggestions, matched to the booking drawer */
+.pac-container {
+  z-index: 60;
+  margin-top: 6px;
+  border: 1px solid rgb(245 241 234 / 0.15);
+  border-radius: 0;
+  background: var(--color-ink-3);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.5);
+  font-family: var(--font-sans);
+}
+.pac-container::after { filter: invert(1); opacity: 0.5; }
+.pac-item {
+  border-top: 1px solid rgb(245 241 234 / 0.08);
+  padding: 8px 12px;
+  color: rgb(245 241 234 / 0.5);
+  cursor: pointer;
+}
+.pac-item:hover, .pac-item-selected { background: rgb(137 204 251 / 0.12); }
+.pac-item-query { color: var(--color-ivory); font-size: 0.875rem; }
+.pac-matched { color: var(--color-sky); }
+.pac-icon { filter: invert(1); opacity: 0.5; }

@@ -1,37 +1,31 @@
-import { useState } from 'react';
-import { BookingForm } from '../components/BookingForm';
-import { Footer } from '../components/Footer';
-import { Gallery } from '../components/Gallery';
-import { Header } from '../components/Header';
-import { Hero } from '../components/Hero';
-import { Newsletter } from '../components/Newsletter';
-import { Services } from '../components/Services';
-import { Testimonials } from '../components/Testimonials';
+import { BookingProvider } from '../booking/BookingContext';
+import BookingDrawer from '../components/luxe/BookingDrawer';
+import Cities from '../components/luxe/Cities';
+import { FinalCall, Footer } from '../components/luxe/Closing';
+import DayInCity from '../components/luxe/DayInCity';
+import Experience from '../components/luxe/Experience';
+import Fleet from '../components/luxe/Fleet';
+import Hero from '../components/luxe/Hero';
+import Nav from '../components/luxe/Nav';
+import Protocol from '../components/luxe/Protocol';
+import Services from '../components/luxe/Services';
 
 export function HomePage() {
-  const [selectedService, setSelectedService] = useState<string>('Airport Shuttle Transfers');
-
-  const handleBookRideClick = () => {
-    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleSelectService = (serviceType: string) => {
-    setSelectedService(serviceType);
-    handleBookRideClick();
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header onBookRideClick={handleBookRideClick} />
-      <Hero onBookRideClick={handleBookRideClick} />
-      <Services onSelectService={handleSelectService} />
-      <div id="booking-form">
-        <BookingForm embedded={true} selectedService={selectedService} />
-      </div>
-      <Testimonials />
-      <Newsletter />
-      <Gallery />
+    <BookingProvider>
+      <Nav />
+      <main>
+        <Hero />
+        <Cities />
+        <Experience />
+        <Services />
+        <Protocol />
+        <DayInCity />
+        <Fleet />
+        <FinalCall />
+      </main>
       <Footer />
-    </div>
+      <BookingDrawer />
+    </BookingProvider>
   );
 }
