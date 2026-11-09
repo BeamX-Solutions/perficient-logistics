@@ -137,7 +137,7 @@ export const SERVICES: Service[] = [
     title: 'Car Hire',
     short: 'Car hire',
     line: 'Your own SUV and chauffeur, by the day or the week.',
-    body: 'Toyota Prado, 4Runner and comparable SUVs, always chauffeur driven. Spotless, air conditioned and fully insured, for as long as you are in town.',
+    body: 'Toyota Prado, Land Cruiser, Lexus, Mercedes-Benz and more, always chauffeur driven. Spotless, air conditioned and fully insured, for as long as you are in town.',
     image: fleetPrado,
   },
 ]
@@ -274,8 +274,7 @@ export const DAY = [
 ]
 
 export const FLEET = {
-  image: fleetPrado,
-  lede: 'Comfortable, capable SUVs, each with a vetted chauffeur at the wheel.',
+  lede: 'From city sedans to armoured Land Cruisers and executive buses, each with a vetted chauffeur at the wheel.',
   points: [
     'Professionally trained, background checked chauffeurs',
     'Hourly, daily and multi day arrangements',
@@ -283,9 +282,6 @@ export const FLEET = {
     'Route planning and live trip monitoring',
   ],
 }
-
-// Shown as a list in the Fleet section; the booking uses vehicleCategories.
-export const VEHICLES = ['Toyota Land Cruiser Prado', 'Toyota 4Runner', 'Lexus GX', 'Toyota Highlander']
 
 // The guest's side of the journey, so visitors can picture themselves in it.
 export const EXPERIENCE: { title: string; text: string; image: string; focus?: string; alt: string }[] = [
