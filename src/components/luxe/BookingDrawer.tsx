@@ -323,6 +323,22 @@ function StepTrip({
 
   return (
     <div className="grid grid-cols-2 content-start gap-x-8 gap-y-8">
+      {b.event && (
+        <div className="col-span-2 flex items-start justify-between gap-4 bg-ivory px-5 py-4 text-ink">
+          <p className="leading-snug">
+            <span className="eyebrow block text-sky-deep">Getting you to</span>
+            <em className="mt-2 block font-display text-xl italic">{b.event}</em>
+          </p>
+          <button
+            type="button"
+            onClick={() => patch({ event: '' })}
+            aria-label="Remove the event from this booking"
+            className="press -mr-1 -mt-1 p-1 text-xl leading-none text-ink/50 hover:text-ink"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <Field label={b.service === 'airport' ? 'Pickup (airport or address)' : 'Pickup address'} error={errors.pickupLocation} className="col-span-2">
         <LocationSearchInput
           value={b.pickupLocation}
@@ -628,6 +644,7 @@ function StepReview({
   if (b.service === 'airport' && b.flight) trip.push(['Flight', b.flight]);
   if (usesDuration(b.service)) trip.push(['Duration', b.duration]);
   if (b.service === 'tours' && b.experience) trip.push(['Experience', b.experience]);
+  if (b.event) trip.push(['Event', b.event]);
   if (distance) trip.push(['Distance', distanceText(distance)]);
 
   const vehicle: [string, string][] = [

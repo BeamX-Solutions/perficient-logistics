@@ -138,7 +138,14 @@ export function Footer() {
       </div>
       <div className="border-t border-ivory/10">
         <div className="mx-auto flex max-w-[1400px] flex-col justify-between gap-3 px-6 py-6 text-xs text-ivory/35 md:flex-row md:px-10">
-          <p>© {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.
+            <span aria-hidden className="mx-2">·</span>
+            {/* Staff sign in here to publish the "What's on" events. */}
+            <Link to="/admin/events" rel="nofollow" className="transition-colors duration-200 hover:text-sky">
+              Staff
+            </Link>
+          </p>
           <p>
             Photos:{' '}
             <a

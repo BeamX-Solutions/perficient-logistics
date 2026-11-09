@@ -101,6 +101,7 @@ export function summaryLines(b: Booking): [string, string][] {
   if (b.service === 'airport' && b.flight) lines.push(['Flight', b.flight]);
   if (usesDuration(b.service)) lines.push(['Duration', b.duration]);
   if (b.service === 'tours' && b.experience) lines.push(['Experience', b.experience]);
+  if (b.event) lines.push(['Event', b.event]);
   const distance = estimatedDistance(b);
   if (distance) lines.push(['Distance', distanceText(distance)]);
   lines.push(['Vehicle', b.selectedVehicle || categoryName(b.vehicleCategory)]);
@@ -138,6 +139,7 @@ export async function submitBooking(b: Booking): Promise<{ ref: string }> {
     flightNumber && `Flight: ${flightNumber}`,
     duration && `Duration: ${duration}`,
     experience && `Experience: ${experience}`,
+    b.event && `Event: ${b.event}`,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -191,6 +193,7 @@ export async function submitBooking(b: Booking): Promise<{ ref: string }> {
         flightNumber,
         duration,
         experience,
+        event: b.event,
       }),
     });
     const text = await response.text();

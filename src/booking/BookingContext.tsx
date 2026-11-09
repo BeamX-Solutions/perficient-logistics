@@ -22,6 +22,8 @@ export interface Booking {
   flight: string;
   duration: string;
   experience: string;
+  /** The event the guest is being driven to, when they booked from "What's on". */
+  event: string;
   // Trip
   pickupLocation: string;
   dropoffLocation: string;
@@ -79,6 +81,7 @@ export const EMPTY: Booking = {
   flight: '',
   duration: 'Half day (5 hours)',
   experience: '',
+  event: '',
   pickupLocation: '',
   dropoffLocation: '',
   pickupCoords: null,

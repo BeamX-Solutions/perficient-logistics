@@ -42,6 +42,7 @@ export const handler = async (event) => {
       flightNumber,
       duration,
       experience,
+      event,
       botField,
     } = body;
 
@@ -61,6 +62,7 @@ export const handler = async (event) => {
       ${flightNumber ? `<p><strong>Flight Number:</strong> ${flightNumber}</p>` : ''}
       ${duration ? `<p><strong>Duration:</strong> ${duration}</p>` : ''}
       ${experience ? `<p><strong>Experience:</strong> ${experience}</p>` : ''}
+      ${event ? `<p><strong>Event:</strong> ${event}</p>` : ''}
       <p><strong>Vehicle Category:</strong> ${vehicleCategory || 'N/A'}</p>
       <p><strong>Selected Vehicle:</strong> ${selectedVehicle || 'No specific vehicle selected'}</p>
       <p><strong>Passengers:</strong> ${passengers || 'N/A'}</p>

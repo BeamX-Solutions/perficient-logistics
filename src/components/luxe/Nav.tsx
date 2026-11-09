@@ -5,6 +5,7 @@ import Wordmark from './Wordmark'
 
 const LINKS: [string, `#${string}`][] = [
   ['Cities', '#cities'],
+  ['Events', '#events'],
   ['Services', '#services'],
   ['Protocol', '#protocol'],
   ['Fleet', '#fleet'],
