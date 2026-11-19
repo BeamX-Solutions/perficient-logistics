@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LatLon } from './BookingContext';
 import { GOOGLE_MAPS_KEY, loadGoogleMapsScript } from './googleMaps';
+import type { Bounds } from './cityBounds';
 
 export function LocationSearchInput({
   id,
@@ -9,6 +10,7 @@ export function LocationSearchInput({
   onCoordinatesChange,
   placeholder,
   invalid,
+  bounds,
 }: {
   id?: string;
   value: string;
@@ -16,6 +18,8 @@ export function LocationSearchInput({
   onCoordinatesChange?: (coords: LatLon | null) => void;
   placeholder: string;
   invalid?: boolean;
+  /** Rank addresses inside this area (the guest's chosen city) first. */
+  bounds?: Bounds | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -27,6 +31,8 @@ export function LocationSearchInput({
   const onCoordsRef = useRef(onCoordinatesChange);
   onChangeRef.current = onChange;
   onCoordsRef.current = onCoordinatesChange;
+  const boundsRef = useRef(bounds);
+  boundsRef.current = bounds;
 
   // Sync external value changes (e.g. form reset)
   useEffect(() => {
@@ -46,6 +52,9 @@ export function LocationSearchInput({
         const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
           componentRestrictions: { country: 'ng' },
           fields: ['formatted_address', 'geometry', 'name'],
+          bounds: boundsRef.current ?? undefined,
+          // Bias, not restrict: other cities still appear so a wrong pick can be explained.
+          strictBounds: false,
         });
 
         autocomplete.addListener('place_changed', () => {
@@ -85,6 +94,16 @@ export function LocationSearchInput({
       cancelled = true;
     };
   }, []);
+
+  // Follow city or service changes after the autocomplete is attached.
+  const { south, west, north, east } = bounds ?? {};
+  useEffect(() => {
+    const ac = autocompleteRef.current;
+    if (!ac) return;
+    const b = south === undefined ? null : { south, west: west!, north: north!, east: east! };
+    ac.setOptions({ bounds: b ?? undefined, strictBounds: false });
+    if (!b) ac.setBounds(undefined);
+  }, [isReady, south, west, north, east]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

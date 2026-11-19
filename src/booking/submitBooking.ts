@@ -10,6 +10,8 @@ import {
   type BookingErrors,
   type LatLon,
 } from './BookingContext';
+import { inCity, PICK_FROM_LIST, restrictsDropoff, wrongCityError } from './cityBounds';
+import { isGoogleMapsReady } from './googleMaps';
 
 // ── Distance ──
 
@@ -67,6 +69,23 @@ export function validateStep(step: number, b: Booking): BookingErrors {
     Object.assign(e, validateTrip(b));
     if (!b.pickupLocation.trim()) e.pickupLocation = 'Where should we collect you?';
     if (!b.dropoffLocation.trim()) e.dropoffLocation = 'Where shall we take you?';
+    // Keep addresses in the chosen city (inter-state drop-offs may be anywhere).
+    const cityError = (coords: LatLon | null) => {
+      if (coords) return inCity(b.city, coords) ? undefined : wrongCityError(b.city, coords);
+      // Without coordinates the guest typed past the suggestions; only insist when they were available.
+      return isGoogleMapsReady() ? PICK_FROM_LIST : undefined;
+    };
+    // Only add a key when there is a message: the drawer advances when the errors object is empty.
+    const pickupError = e.pickupLocation ? undefined : cityError(b.pickupCoords);
+    if (pickupError) e.pickupLocation = pickupError;
+    if (!e.dropoffLocation) {
+      const dropoffError = restrictsDropoff(b.service)
+        ? cityError(b.dropoffCoords)
+        : !b.dropoffCoords && isGoogleMapsReady()
+          ? PICK_FROM_LIST
+          : undefined;
+      if (dropoffError) e.dropoffLocation = dropoffError;
+    }
     if (b.dropoffDate && b.date && b.dropoffDate < b.date) {
       e.dropoffDate = 'Drop-off date cannot be before pick-up date';
     }

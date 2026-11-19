@@ -1,5 +1,5 @@
 import { vehicleCategories, type Vehicle, type VehicleCategory } from './vehicleData'
-import prado from '../assets/img/fleet-prado.jpg'
+import prado from '../assets/img/fleet/prado.jpg'
 import lx570Suv from '../assets/img/fleet/lx570-suv.jpg'
 import hilux from '../assets/img/fleet/hilux.jpg'
 import landcruiser from '../assets/img/fleet/landcruiser.jpg'
@@ -29,7 +29,8 @@ export interface FleetModel {
   image: string
   focus?: string
   alt: string
-  credit: { author: string; url: string; license: string }
+  /** Licence credit for borrowed photos; leave out for Perficient's own. */
+  credit?: { author: string; url: string; license: string }
 }
 
 const commons = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`
@@ -43,8 +44,8 @@ export const FLEET_MODELS: FleetModel[] = [
     labels: ['Toyota Prado 2017 Model', 'Toyota Prado 2018 Model', 'Toyota Prado 2020 Upgraded', 'Toyota Prado 2020 Model'],
     prefix: 'Toyota Prado ',
     image: prado,
-    alt: 'Black Toyota Land Cruiser Prado on a city street',
-    credit: { author: 'Ethan Llamas', url: commons('Toyota_Land_Cruiser_Prado_VX_black_diplomatic.jpg'), license: 'CC BY-SA 4.0' },
+    alt: 'Black Toyota Land Cruiser Prado, front three-quarter view',
+    credit: { author: 'Dinkun Chen', url: commons('TOYOTA_LAND_CRUISER_PRADO_(J150)_China_(39).jpg'), license: 'CC BY-SA 4.0' },
   },
   {
     id: 'landcruiser',
@@ -235,12 +236,7 @@ export const FLEET_MODELS: FleetModel[] = [
     labels: ['Mercedes Benz Sprinter Bus'],
     prefix: 'Mercedes Benz Sprinter Bus',
     image: sprinter,
-    alt: 'Black Mercedes-Benz Sprinter executive van, front three-quarter view',
-    credit: {
-      author: 'Damian B Oh',
-      url: commons('Mercedes-Benz_VS30_Sprinter_Tourer_319_CDI_Jet_Black_(1).jpg'),
-      license: 'CC BY-SA 4.0',
-    },
+    alt: 'Black Mercedes-Benz Sprinter executive van parked on a city street',
   },
 ]
 

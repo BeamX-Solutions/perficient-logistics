@@ -15,6 +15,7 @@ import {
   type LatLon,
 } from '../../booking/BookingContext';
 import { LocationSearchInput } from '../../booking/LocationSearchInput';
+import { CITY_BOUNDS, cityOf, inCity, PICK_FROM_LIST, restrictsDropoff, wrongCityError } from '../../booking/cityBounds';
 import {
   categoryName,
   distanceText,
@@ -26,11 +27,47 @@ import {
   whatsappLink,
 } from '../../booking/submitBooking';
 import { vehicleCategories } from '../../data/vehicleData';
-import { BRAND, CITIES } from '../../data/site';
+import { BRAND, CITIES, type CityName } from '../../data/site';
 
 const STEPS = ['Trip', 'Vehicle', 'Details', 'Review'];
 
 type Status = 'idle' | 'sending' | 'error' | 'done';
+
+type AddressField = 'pickup' | 'drop-off';
+
+/** A pop-up explaining why an address can't be used. */
+interface Notice {
+  title: string;
+  message: string;
+  /** Label for the button that closes the pop-up. */
+  dismiss: string;
+  /** Offer to switch the booking to the city the address is in. */
+  switchTo?: CityName;
+}
+
+function wrongCityNotice(city: CityName, field: AddressField, c: LatLon): Notice {
+  const other = cityOf(c);
+  return other
+    ? {
+        title: `That address is in ${other}`,
+        message: `Your city is set to ${city}, so you can't choose a ${field} address in ${other}. Choose an address in ${city}, or switch your city to ${other}.`,
+        dismiss: 'Choose another address',
+        switchTo: other,
+      }
+    : {
+        title: `That address is outside ${city}`,
+        message: `Your city is set to ${city}, so your ${field} address needs to be in ${city}. Please choose an address in ${city}.`,
+        dismiss: 'Choose another address',
+      };
+}
+
+function pickFromListNotice(city: CityName, field: AddressField): Notice {
+  return {
+    title: 'Choose an address from the list',
+    message: `Start typing your ${field} address, then pick it from the suggestions that appear. That lets us confirm it's in ${city}.`,
+    dismiss: 'Got it',
+  };
+}
 
 export default function BookingDrawer() {
   const { booking: b, update, open, setOpen, reset } = useBooking();
@@ -41,6 +78,9 @@ export default function BookingDrawer() {
   const [ref, setRef] = useState('');
   // A snapshot of what was booked, so the confirmation survives a reset.
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const noticeRef = useRef(notice);
+  noticeRef.current = notice;
   const panel = useRef<HTMLElement>(null);
   const body = useRef<HTMLDivElement>(null);
 
@@ -73,7 +113,10 @@ export default function BookingDrawer() {
     panel.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       // Escape first closes the Google Places suggestions, not the drawer.
-      if (e.key === 'Escape' && !document.querySelector('.pac-container:not([style*="display: none"])')) close();
+      if (e.key !== 'Escape' || document.querySelector('.pac-container:not([style*="display: none"])')) return;
+      // ...and an open pop-up before the drawer.
+      if (noticeRef.current) setNotice(null);
+      else close();
     };
     window.addEventListener('keydown', onKey);
     return () => {
@@ -91,7 +134,42 @@ export default function BookingDrawer() {
   function next() {
     const errs = validateStep(step, b);
     setErrors(errs);
-    if (Object.keys(errs).length === 0) goTo(step + 1);
+    if (Object.keys(errs).length === 0) {
+      goTo(step + 1);
+      return;
+    }
+    if (step === 1) setNotice(addressNotice(b, errs));
+  }
+
+  // Explain an address problem in a pop-up, not just the small text under the field.
+  function addressNotice(bk: Booking, errs: BookingErrors): Notice | null {
+    const fields: [AddressField, keyof Booking, LatLon | null][] = [
+      ['pickup', 'pickupLocation', bk.pickupCoords],
+      ['drop-off', 'dropoffLocation', bk.dropoffCoords],
+    ];
+    for (const [field, key, coords] of fields) {
+      const msg = errs[key];
+      if (!msg) continue;
+      if (coords && !inCity(bk.city, coords)) return wrongCityNotice(bk.city, field, coords);
+      if (msg === PICK_FROM_LIST) return pickFromListNotice(bk.city, field);
+    }
+    return null;
+  }
+
+  // Picking an address in the wrong city explains itself straight away.
+  const onWrongCity = useCallback(
+    (field: AddressField, c: LatLon) => {
+      setErrors((x) => ({ ...x, [field === 'pickup' ? 'pickupLocation' : 'dropoffLocation']: wrongCityError(b.city, c) }));
+      setNotice(wrongCityNotice(b.city, field, c));
+    },
+    [b.city],
+  );
+
+  function switchCity(city: CityName) {
+    // Addresses left behind in the old city are cleared by BookingProvider.
+    update(experiencePatch(b, '', city));
+    setErrors({});
+    setNotice(null);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -197,7 +275,7 @@ export default function BookingDrawer() {
 
             <div ref={body} className="flex-1 overflow-y-auto">
               <div key={step} className="animate-swap px-8 py-8">
-                {step === 1 && <StepTrip b={b} errors={errors} set={set} patch={patch} />}
+                {step === 1 && <StepTrip b={b} errors={errors} set={set} patch={patch} onWrongCity={onWrongCity} />}
                 {step === 2 && <StepVehicle b={b} errors={errors} patch={patch} />}
                 {step === 3 && <StepDetails b={b} errors={errors} set={set} />}
                 {step === 4 && (
@@ -249,6 +327,8 @@ export default function BookingDrawer() {
             </footer>
           </form>
         )}
+
+        {notice && <AddressNotice notice={notice} onClose={() => setNotice(null)} onSwitch={switchCity} />}
       </aside>
     </div>
   );
@@ -301,18 +381,32 @@ function StepTrip({
   errors,
   set,
   patch,
+  onWrongCity,
 }: {
   b: Booking;
   errors: BookingErrors;
   set: SetFn;
   patch: (p: Partial<Booking>) => void;
+  onWrongCity: (field: AddressField, c: LatLon) => void;
 }) {
   const city = CITIES[b.city];
   const slots = useMemo(() => (b.date ? timeSlots(b.date) : []), [b.date]);
   const onPickup = useCallback((v: string) => patch({ pickupLocation: v }), [patch]);
   const onDropoff = useCallback((v: string) => patch({ dropoffLocation: v }), [patch]);
-  const onPickupCoords = useCallback((c: LatLon | null) => patch({ pickupCoords: c }), [patch]);
-  const onDropoffCoords = useCallback((c: LatLon | null) => patch({ dropoffCoords: c }), [patch]);
+  const onPickupCoords = useCallback(
+    (c: LatLon | null) => {
+      patch({ pickupCoords: c });
+      if (c && !inCity(b.city, c)) onWrongCity('pickup', c);
+    },
+    [patch, b.city, onWrongCity],
+  );
+  const onDropoffCoords = useCallback(
+    (c: LatLon | null) => {
+      patch({ dropoffCoords: c });
+      if (c && restrictsDropoff(b.service) && !inCity(b.city, c)) onWrongCity('drop-off', c);
+    },
+    [patch, b.city, b.service, onWrongCity],
+  );
 
   function onDate(date: string) {
     const p: Partial<Booking> = { date };
@@ -344,6 +438,7 @@ function StepTrip({
           value={b.pickupLocation}
           onChange={onPickup}
           onCoordinatesChange={onPickupCoords}
+          bounds={CITY_BOUNDS[b.city]}
           invalid={!!errors.pickupLocation}
           placeholder={b.service === 'airport' ? city.airport : `Hotel, residence or office in ${b.city}`}
         />
@@ -354,6 +449,7 @@ function StepTrip({
           value={b.dropoffLocation}
           onChange={onDropoff}
           onCoordinatesChange={onDropoffCoords}
+          bounds={restrictsDropoff(b.service) ? CITY_BOUNDS[b.city] : null}
           invalid={!!errors.dropoffLocation}
           placeholder={b.service === 'interstate' ? 'Ibadan, Benin, Kaduna, Port Harcourt...' : 'Where shall we take you?'}
         />
@@ -784,6 +880,51 @@ function Confirmation({ b, refCode, onDone }: { b: Booking; refCode: string; onD
       <button type="button" onClick={onDone} className="press eyebrow mx-auto mt-10 text-ivory/50 hover:text-sky">
         Back to the city
       </button>
+    </div>
+  );
+}
+
+// ── Address pop-up ──
+
+function AddressNotice({
+  notice,
+  onClose,
+  onSwitch,
+}: {
+  notice: Notice;
+  onClose: () => void;
+  onSwitch: (city: CityName) => void;
+}) {
+  const primary = useRef<HTMLButtonElement>(null);
+  useEffect(() => primary.current?.focus(), [notice]);
+
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-ink/75 p-6 backdrop-blur-sm transition-opacity duration-200 ease-out starting:opacity-0">
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="address-notice-title"
+        aria-describedby="address-notice-message"
+        className="w-full max-w-md border border-sky/40 bg-ink-3 px-7 py-8 shadow-2xl transition-[opacity,translate] duration-300 ease-out starting:translate-y-2 starting:opacity-0"
+      >
+        <p className="eyebrow text-sky">Check your address</p>
+        <h3 id="address-notice-title" className="display mt-4 text-3xl">
+          {notice.title}
+        </h3>
+        <p id="address-notice-message" className="mt-4 leading-relaxed text-ivory/75">
+          {notice.message}
+        </p>
+        <div className="mt-8 grid gap-3">
+          <button ref={primary} type="button" onClick={onClose} className="btn-sky w-full">
+            {notice.dismiss}
+          </button>
+          {notice.switchTo && (
+            <button type="button" onClick={() => onSwitch(notice.switchTo!)} className="btn-line w-full">
+              Switch my city to {notice.switchTo}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

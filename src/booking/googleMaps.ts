@@ -6,6 +6,11 @@ export const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | 
 let googleMapsLoaded = false;
 let googleMapsLoadPromise: Promise<void> | null = null;
 
+/** True once the Places library is loaded, so suggestions can be relied on. */
+export function isGoogleMapsReady() {
+  return googleMapsLoaded && !!window.google?.maps?.places;
+}
+
 export function loadGoogleMapsScript(): Promise<void> {
   if (googleMapsLoaded && window.google?.maps?.places) return Promise.resolve();
   if (googleMapsLoadPromise) return googleMapsLoadPromise;

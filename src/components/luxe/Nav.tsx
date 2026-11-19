@@ -44,7 +44,7 @@ export default function Nav() {
         </ul>
 
         <div className="hidden items-center gap-8 lg:flex">
-          <a href={BRAND.phoneHref} className="font-display text-lg italic text-ivory/70 transition-colors duration-200 hover:text-sky">
+          <a href={BRAND.phoneHref} className="font-sans text-[0.95rem] font-normal not-italic tracking-wider tabular-nums text-ivory/90 transition-colors duration-200 hover:text-sky">
             {BRAND.phone}
           </a>
           <HashLink to="#reserve" className="btn-sky !px-6 !py-3">

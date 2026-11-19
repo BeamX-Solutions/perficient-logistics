@@ -114,12 +114,12 @@ export function Footer() {
         </FooterCol>
         <FooterCol title="Concierge">
           <li>
-            <a href={BRAND.phoneHref} className="link-underline transition-colors duration-200 hover:text-sky">
+            <a href={BRAND.phoneHref} className="link-underline font-normal tabular-nums tracking-wide text-ivory/90 transition-colors duration-200 hover:text-sky">
               {BRAND.phone}
             </a>
           </li>
           <li>
-            <a href={BRAND.phoneAltHref} className="link-underline transition-colors duration-200 hover:text-sky">
+            <a href={BRAND.phoneAltHref} className="link-underline font-normal tabular-nums tracking-wide text-ivory/90 transition-colors duration-200 hover:text-sky">
               {BRAND.phoneAlt}
             </a>
           </li>
@@ -149,12 +149,12 @@ export function Footer() {
           <p>
             Photos:{' '}
             <a
-              href="https://commons.wikimedia.org/wiki/File:Toyota_Land_Cruiser_Prado_VX_black_diplomatic.jpg"
+              href="https://commons.wikimedia.org/wiki/File:TOYOTA_LAND_CRUISER_PRADO_(J150)_China_(39).jpg"
               target="_blank"
               rel="noreferrer"
               className="underline decoration-ivory/20 underline-offset-2 hover:text-sky"
             >
-              Ethan Llamas
+              Dinkun Chen
             </a>
             ,{' '}
             <a

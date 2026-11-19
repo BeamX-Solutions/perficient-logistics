@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { CITIES, SERVICES, type CityName, type Place, type ServiceId } from '../data/site';
 import { drivingRoute, type Route } from './drivingDistance';
+import { inCity, restrictsDropoff } from './cityBounds';
 
 // Booking state lives here so any section of the page (city guide, services,
 // fleet) can prefill the reservation and open the booking drawer.
@@ -179,6 +180,23 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       stale = true;
     };
   }, [from, to]);
+
+  // When the city (or service) changes, drop addresses that belong to another city.
+  const { city, service } = booking;
+  useEffect(() => {
+    setBooking((b) => {
+      const patch: Partial<Booking> = {};
+      if (b.pickupCoords && !inCity(city, b.pickupCoords)) {
+        patch.pickupLocation = '';
+        patch.pickupCoords = null;
+      }
+      if (restrictsDropoff(service) && b.dropoffCoords && !inCity(city, b.dropoffCoords)) {
+        patch.dropoffLocation = '';
+        patch.dropoffCoords = null;
+      }
+      return Object.keys(patch).length ? { ...b, ...patch } : b;
+    });
+  }, [city, service]);
 
   // Prefill from anywhere on the page, then take the guest to the booking bar,
   // or straight into the booking drawer when there is enough to start from.

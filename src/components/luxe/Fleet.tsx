@@ -130,14 +130,16 @@ export default function Fleet() {
                   >
                     Reserve this →
                   </button>
-                  <a
-                    href={m.credit.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[0.65rem] leading-snug text-ink/40 transition-colors duration-200 hover:text-sky-deep sm:text-right"
-                  >
-                    Photo: {m.credit.author} · {m.credit.license}
-                  </a>
+                  {m.credit && (
+                    <a
+                      href={m.credit.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[0.65rem] leading-snug text-ink/40 transition-colors duration-200 hover:text-sky-deep sm:text-right"
+                    >
+                      Photo: {m.credit.author} · {m.credit.license}
+                    </a>
+                  )}
                 </div>
               </li>
             ))}
