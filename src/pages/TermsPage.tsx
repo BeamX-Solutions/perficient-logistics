@@ -132,7 +132,7 @@ export function TermsPage() {
 
   const rules: string[] = [
     'No smoking inside vehicles.',
-    'Be polite to the driver; no abusive language, please.',
+    'Be polite to the driver. No abusive language permitted.',
     'No self-driving.',
   ];
 
