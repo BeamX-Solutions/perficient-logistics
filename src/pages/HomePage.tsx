@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BookingForm } from '../components/BookingForm';
+import { DecemberOffers } from '../components/DecemberOffers';
 import { Footer } from '../components/Footer';
 import { Gallery } from '../components/Gallery';
 import { Header } from '../components/Header';
@@ -15,8 +16,16 @@ export function HomePage() {
     document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const [selectedOffer, setSelectedOffer] = useState('');
+
   const handleSelectService = (serviceType: string) => {
     setSelectedService(serviceType);
+    setSelectedOffer('');
+    handleBookRideClick();
+  };
+
+  const handleSelectOffer = (offerId: string) => {
+    setSelectedOffer(offerId);
     handleBookRideClick();
   };
 
@@ -25,8 +34,14 @@ export function HomePage() {
       <Header onBookRideClick={handleBookRideClick} />
       <Hero onBookRideClick={handleBookRideClick} />
       <Services onSelectService={handleSelectService} />
+      <DecemberOffers selectedOfferId={selectedOffer} onSelectOffer={handleSelectOffer} />
       <div id="booking-form">
-        <BookingForm embedded={true} selectedService={selectedService} />
+        <BookingForm
+          embedded={true}
+          selectedService={selectedService}
+          offerId={selectedOffer}
+          onOfferChange={setSelectedOffer}
+        />
       </div>
       <Testimonials />
       <Newsletter />

@@ -16,9 +16,20 @@ import {
   ExternalLink,
   CheckCircle2,
   MessageCircle,
+  Gift,
+  X,
+  CreditCard,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { vehicleCategories } from '../data/vehicleData';
+import {
+  formatNaira,
+  offerById,
+  offerEndDate,
+  offerSummary,
+  offerVehicleLabel,
+  type Offer,
+} from '../data/offers';
 
 const WHATSAPP_NUMBER = '2348052702261';
 
@@ -33,6 +44,9 @@ function getTodayString(): string {
 interface BookingFormProps {
   embedded?: boolean;
   selectedService?: string;
+  /** December offer chosen from the offer cards ('' for regular rates). */
+  offerId?: string;
+  onOfferChange?: (offerId: string) => void;
 }
 
 interface WizardFormData {
@@ -50,6 +64,8 @@ interface WizardFormData {
   phoneNumber: string;
   email: string;
   specialRequest: string;
+  /** Id of the December offer being booked, '' for regular rates. */
+  offer: string;
 }
 
 const INITIAL_FORM_DATA: WizardFormData = {
@@ -67,7 +83,42 @@ const INITIAL_FORM_DATA: WizardFormData = {
   phoneNumber: '',
   email: '',
   specialRequest: '',
+  offer: '',
 };
+
+/** Special request as stored and emailed: the offer leads so staff see it first. */
+function requestWithOffer(formData: WizardFormData): string {
+  const offer = offerById(formData.offer);
+  return [offer && offerSummary(offer), formData.specialRequest].filter(Boolean).join('\n');
+}
+
+function OfferBanner({ offer, onRemove }: { offer: Offer; onRemove?: () => void }) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 mb-4">
+      <div className="flex items-start gap-3">
+        <Gift className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold text-gray-900">
+            December offer: {offer.title} ({offer.tagline})
+          </p>
+          <p className="text-gray-600">
+            {formatNaira(offer.price)} for {offer.days} days, {offer.hoursPerDay} hours per day
+          </p>
+        </div>
+      </div>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove offer and use regular rates"
+          className="text-gray-400 hover:text-gray-700"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 const STEPS = [
   { number: 1, label: 'Trip Details', shortLabel: 'Trip' },
@@ -307,7 +358,9 @@ function StepTripDetails({
   onLocationChange,
   onCoordsChange,
   showErrors,
+  onRemoveOffer,
 }: {
+  onRemoveOffer: () => void;
   formData: WizardFormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onLocationChange: (field: 'pickupLocation' | 'dropoffLocation', value: string) => void;
@@ -322,8 +375,16 @@ function StepTripDetails({
   const dropoffDateInvalid =
     formData.dropoffDate && formData.pickupDate && formData.dropoffDate < formData.pickupDate;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="space-y-4">
+      {offer && <OfferBanner offer={offer} onRemove={onRemoveOffer} />}
+      {offer && (
+        <p className="-mt-2 text-xs text-gray-500">
+          Your drop-off date is set to the last day of the package when you pick a date.
+        </p>
+      )}
       {/* Service Type */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -484,13 +545,61 @@ function StepVehicleCategory({
   onCategorySelect,
   onVehicleSelect,
   showErrors,
+  onRemoveOffer,
 }: {
   formData: WizardFormData;
   onCategorySelect: (categoryId: string) => void;
   onVehicleSelect: (categoryId: string, vehicleLabel: string) => void;
   showErrors: boolean;
+  onRemoveOffer: () => void;
 }) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const offer = offerById(formData.offer);
+
+  if (offer) {
+    return (
+      <div>
+        <OfferBanner offer={offer} />
+        <p className="text-sm text-gray-600 mb-3">Choose your vehicle for this package.</p>
+        {showErrors && !formData.selectedVehicle && (
+          <p className="text-sm text-red-500 mb-3">Please select a vehicle to continue.</p>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          {offer.vehicles.map((vehicle) => {
+            const label = offerVehicleLabel(offer, vehicle);
+            const isSelected = formData.selectedVehicle === label;
+            return (
+              <label
+                key={vehicle}
+                className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-colors ${
+                  isSelected ? 'border-blue-500 bg-blue-50/50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="selectedVehicle"
+                  value={label}
+                  checked={isSelected}
+                  onChange={() => onVehicleSelect(offer.categoryId, label)}
+                  className="w-4 h-4 text-blue-500"
+                />
+                <span className="font-medium text-gray-900">{vehicle}</span>
+              </label>
+            );
+          })}
+        </div>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={onRemoveOffer}
+            className="text-sm font-medium text-blue-500 hover:text-blue-700"
+          >
+            Book at regular rates instead
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const toggleExpand = (categoryId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -758,11 +867,14 @@ function StepReview({
     ? getVehiclePrice(formData.vehicleCategory, formData.selectedVehicle)
     : null;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="space-y-5">
       <p className="text-sm text-gray-600 mb-2">
         Review your booking details before submitting.
       </p>
+      {offer && <OfferBanner offer={offer} />}
 
       {/* Trip Details */}
       <div className="bg-gray-50 rounded-xl p-5">
@@ -841,7 +953,11 @@ function StepReview({
                 <span className="text-gray-500">Vehicle: </span>
                 <span className="font-medium text-gray-900">{formData.selectedVehicle}</span>
               </div>
-              {vehiclePrice && (
+              {offer ? (
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+                  {formatNaira(offer.price)} package
+                </span>
+              ) : vehiclePrice && (
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                   {vehiclePrice}/day
                 </span>
@@ -951,6 +1067,8 @@ function BookingConfirmation({
     ? getVehiclePrice(formData.vehicleCategory, formData.selectedVehicle)
     : null;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="text-center py-4">
       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -975,7 +1093,14 @@ function BookingConfirmation({
               {formData.selectedVehicle || categoryInfo?.name || formData.vehicleCategory}
             </span>
           </div>
-          {vehiclePrice && (
+          {offer ? (
+            <div className="flex justify-between">
+              <span className="text-gray-500">December offer</span>
+              <span className="font-medium text-blue-600">
+                {formatNaira(offer.price)} for {offer.days} days
+              </span>
+            </div>
+          ) : vehiclePrice && (
             <div className="flex justify-between">
               <span className="text-gray-500">Rate</span>
               <span className="font-medium text-blue-600">{vehiclePrice}/day</span>
@@ -993,6 +1118,23 @@ function BookingConfirmation({
           </div>
         </div>
       </div>
+
+      {offer?.paystackUrl && (
+        <div className="max-w-md mx-auto mb-6">
+          <a
+            href={offer.paystackUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 px-6 py-3 font-medium text-white transition-colors"
+          >
+            <CreditCard className="w-4 h-4" />
+            Pay {formatNaira(offer.price)} now with Paystack
+          </a>
+          <p className="text-xs text-gray-500 mt-2">
+            Use the same email ({formData.email}) so we can match your payment to this booking.
+          </p>
+        </div>
+      )}
 
       <p className="text-sm text-gray-500 mb-6">
         A confirmation email has been sent to <span className="font-medium text-gray-700">{formData.email}</span>
@@ -1045,7 +1187,7 @@ function StepNavigation({
 
 // ── Main BookingForm Component ──
 
-export function BookingForm({ embedded = false, selectedService }: BookingFormProps) {
+export function BookingForm({ embedded = false, selectedService, offerId = '', onOfferChange }: BookingFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<WizardFormData>({
     ...INITIAL_FORM_DATA,
@@ -1070,12 +1212,45 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     }
   }, [selectedService]);
 
+  // Apply (or drop) the December offer chosen from the offer cards.
+  useEffect(() => {
+    const offer = offerById(offerId);
+    setFormData((prev) => {
+      if (offer) {
+        if (prev.offer === offer.id) return prev;
+        return {
+          ...prev,
+          offer: offer.id,
+          serviceType: 'Full-Day Personal Chauffeur',
+          vehicleCategory: offer.categoryId,
+          selectedVehicle: offer.vehicles.length === 1 ? offerVehicleLabel(offer, offer.vehicles[0]) : '',
+          dropoffDate: offerEndDate(offer, prev.pickupDate) || prev.dropoffDate,
+        };
+      }
+      if (!prev.offer) return prev;
+      return { ...prev, offer: '', vehicleCategory: '', selectedVehicle: '', dropoffDate: '' };
+    });
+    if (offer) {
+      setCurrentStep(1);
+      setSubmitStatus('idle');
+      setConfirmedFormData(null);
+    }
+  }, [offerId]);
+
+  const removeOffer = () => onOfferChange?.('');
+
   // Handlers
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      // Offer packages run for a fixed number of days from pickup.
+      const offer = offerById(prev.offer);
+      if (name === 'pickupDate' && offer) next.dropoffDate = offerEndDate(offer, value);
+      return next;
+    });
   };
 
   const handleLocationChange = (field: 'pickupLocation' | 'dropoffLocation', value: string) => {
@@ -1168,6 +1343,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     setConfirmedFormData(null);
     setPickupCoords(null);
     setDropoffCoords(null);
+    onOfferChange?.('');
   };
 
   // Submit
@@ -1196,7 +1372,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           full_name: formData.fullName,
           phone_number: formData.phoneNumber,
           email: formData.email,
-          special_request: formData.specialRequest || null,
+          special_request: requestWithOffer(formData) || null,
         },
       ]);
 
@@ -1220,7 +1396,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
             fullName: formData.fullName,
             phoneNumber: formData.phoneNumber,
             email: formData.email,
-            specialRequest: formData.specialRequest,
+            specialRequest: requestWithOffer(formData),
             estimatedDistance: estimatedDistance ? Math.round(estimatedDistance) : null,
           }),
         });
@@ -1282,6 +1458,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onLocationChange={handleLocationChange}
                     onCoordsChange={handleCoordsChange}
                     showErrors={showStepErrors}
+                    onRemoveOffer={removeOffer}
                   />
                 )}
 
@@ -1291,6 +1468,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onCategorySelect={handleCategorySelect}
                     onVehicleSelect={handleVehicleSelect}
                     showErrors={showStepErrors}
+                    onRemoveOffer={removeOffer}
                   />
                 )}
 
