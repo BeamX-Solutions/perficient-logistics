@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Check, Gift, X } from 'lucide-react';
-import { OFFERS, formatNaira, offersActive, regularPrice, savings, type Offer } from '../data/offers';
+import { OFFERS, OFFER_TERMS, formatNaira, offersActive, regularPrice, savings, type Offer } from '../data/offers';
 
 interface DecemberOffersProps {
   selectedOfferId: string;
@@ -34,8 +34,24 @@ export function DecemberOffers({ selectedOfferId, onSelectOffer }: DecemberOffer
             />
           ))}
         </div>
+
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 className="font-semibold text-gray-900 mb-3">Offer terms and conditions</h3>
+          <OfferTerms />
+        </div>
       </div>
     </section>
+  );
+}
+
+/** The December offer terms as a list; shared by the offers section, pop-up and booking review. */
+export function OfferTerms({ className = '' }: { className?: string }) {
+  return (
+    <ul className={`space-y-1.5 text-sm text-gray-600 list-disc pl-5 ${className}`}>
+      {OFFER_TERMS.map((term) => (
+        <li key={term}>{term}</li>
+      ))}
+    </ul>
   );
 }
 
@@ -173,6 +189,11 @@ export function OffersPopup({
             <OfferCard key={offer.id} offer={offer} selected={false} onSelect={() => onSelectOffer(offer.id)} />
           ))}
         </div>
+
+        <details className="mt-6 rounded-xl border border-gray-200 bg-white px-5 py-3 text-left">
+          <summary className="cursor-pointer text-sm font-medium text-gray-700">Offer terms and conditions</summary>
+          <OfferTerms className="mt-3" />
+        </details>
 
         <div className="text-center mt-6">
           <button type="button" onClick={onClose} className="text-sm font-medium text-gray-500 hover:text-gray-800">

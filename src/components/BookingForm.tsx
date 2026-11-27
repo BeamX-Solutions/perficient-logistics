@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { OfferTerms } from './DecemberOffers';
 import { vehicleCategories } from '../data/vehicleData';
 import {
   formatNaira,
@@ -478,7 +479,7 @@ function StepTripDetails({
         </div>
       </div>
 
-      {locationError && (showErrors || locationError.kind === 'interstate') && (
+      {locationError && (showErrors || locationError.kind !== 'unverified') && (
         <p role="alert" className="text-sm text-red-500">
           {locationError.message}
         </p>
@@ -517,7 +518,8 @@ function StepTripDetails({
 
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
-            Drop-off Date <span className="text-gray-400 font-normal">(optional)</span>
+            Drop-off Date{' '}
+            <span className="text-gray-400 font-normal">{offer ? '(last day of package)' : '(optional)'}</span>
           </label>
           <div className="relative overflow-hidden">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
@@ -527,7 +529,10 @@ function StepTripDetails({
               value={formData.dropoffDate}
               onChange={onChange}
               min={formData.pickupDate || today}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none ${
+              // Offer days run back to back, so the end date follows the start date.
+              readOnly={!!offer}
+              tabIndex={offer ? -1 : undefined}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none ${offer ? 'bg-gray-100 text-gray-600 pointer-events-none ' : ''}${
                 dropoffDateInvalid ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
               }`}
             />
@@ -1059,6 +1064,13 @@ function StepReview({
         </div>
       </div>
 
+      {offer && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-3">December offer terms</h3>
+          <OfferTerms />
+        </div>
+      )}
+
       {/* Terms & Conditions checkbox */}
       <div className={`rounded-xl p-4 ${showTermsError && !agreedToTerms ? 'bg-red-50 border border-red-200' : 'bg-gray-50'}`}>
         <label className="flex items-start gap-3 cursor-pointer">
@@ -1077,7 +1089,9 @@ function StepReview({
             >
               Terms & Rates
             </Link>
-            , including the cancellation policy (100% charge for no-shows, 50% if cancelled 24+ hours in advance).
+            {offer
+              ? ', and the December offer terms above.'
+              : ', including the cancellation policy (100% charge for no-shows, 50% if cancelled 24+ hours in advance).'}
           </span>
         </label>
         {showTermsError && !agreedToTerms && (
@@ -1260,7 +1274,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
           serviceType: 'Full-Day Personal Chauffeur',
           vehicleCategory: offer.categoryId,
           selectedVehicle: offer.vehicles.length === 1 ? offerVehicleLabel(offer, offer.vehicles[0]) : '',
-          dropoffDate: offerEndDate(offer, prev.pickupDate) || prev.dropoffDate,
+          dropoffDate: offerEndDate(offer, prev.pickupDate),
         };
       }
       if (!prev.offer) return prev;
