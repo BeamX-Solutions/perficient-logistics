@@ -18,7 +18,6 @@ import {
   MessageCircle,
   Gift,
   X,
-  CreditCard,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { vehicleCategories } from '../data/vehicleData';
@@ -1172,23 +1171,6 @@ function BookingConfirmation({
           </div>
         </div>
       </div>
-
-      {offer?.paystackUrl && (
-        <div className="max-w-md mx-auto mb-6">
-          <a
-            href={offer.paystackUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 px-6 py-3 font-medium text-white transition-colors"
-          >
-            <CreditCard className="w-4 h-4" />
-            Pay {formatNaira(offer.price)} now with Paystack
-          </a>
-          <p className="text-xs text-gray-500 mt-2">
-            Use the same email ({formData.email}) so we can match your payment to this booking.
-          </p>
-        </div>
-      )}
 
       <p className="text-sm text-gray-500 mb-6">
         A confirmation email has been sent to <span className="font-medium text-gray-700">{formData.email}</span>

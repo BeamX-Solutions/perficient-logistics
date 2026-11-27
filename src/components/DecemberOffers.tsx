@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Check, CreditCard, Gift, X } from 'lucide-react';
+import { Check, Gift, X } from 'lucide-react';
 import { OFFERS, formatNaira, offersActive, regularPrice, savings, type Offer } from '../data/offers';
 
 interface DecemberOffersProps {
@@ -81,17 +81,6 @@ export function OfferCard({ offer, selected, onSelect }: { offer: Offer; selecte
         >
           {selected ? 'Selected, complete your booking below' : 'Select this offer'}
         </button>
-        {offer.paystackUrl && (
-          <a
-            href={offer.paystackUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 px-6 py-2.5 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <CreditCard className="w-4 h-4" />
-            Pay {formatNaira(offer.price)} with Paystack
-          </a>
-        )}
       </div>
     </article>
   );

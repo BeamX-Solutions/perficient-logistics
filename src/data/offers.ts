@@ -1,9 +1,4 @@
 // December 2026 seasonal offers. Regular rates stay on sale alongside these.
-//
-// Payment links are Paystack Payment Pages, set per environment (Netlify env vars):
-//   VITE_PAYSTACK_PRADO_OFFER_URL  e.g. https://paystack.com/pay/perficient-prado-december
-//   VITE_PAYSTACK_SEDAN_OFFER_URL  e.g. https://paystack.com/pay/perficient-sedan-december
-// When a link is missing the card falls back to booking without online payment.
 
 export interface Offer {
   id: string;
@@ -18,12 +13,6 @@ export interface Offer {
   regularDailyRate: number;
   price: number;
   includes: string[];
-  paystackUrl: string | null;
-}
-
-function paymentUrl(value: string | undefined): string | null {
-  const url = value?.trim();
-  return url && url.startsWith('https://') ? url : null;
 }
 
 export const OFFERS: Offer[] = [
@@ -38,7 +27,6 @@ export const OFFERS: Offer[] = [
     regularDailyRate: 170000,
     price: 450000,
     includes: ['Toyota Prado with professional driver', '3 days, 10 hours per day', 'Within one state, no interstate travel'],
-    paystackUrl: paymentUrl(import.meta.env.VITE_PAYSTACK_PRADO_OFFER_URL),
   },
   {
     id: 'sedan-1-week',
@@ -51,7 +39,6 @@ export const OFFERS: Offer[] = [
     regularDailyRate: 80000,
     price: 500000,
     includes: ['Car, driver and fuel included', '7 days, 10 hours per day', 'Within one state, no interstate travel'],
-    paystackUrl: paymentUrl(import.meta.env.VITE_PAYSTACK_SEDAN_OFFER_URL),
   },
 ];
 
