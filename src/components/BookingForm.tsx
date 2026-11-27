@@ -1091,7 +1091,7 @@ function StepReview({
             </Link>
             {offer
               ? ', and the December offer terms above.'
-              : ', including the cancellation policy (100% charge for no-shows, 50% if cancelled 24+ hours in advance).'}
+              : ', including the cancellation policy (full refund if cancelled more than 3 days ahead, 50% charge between 3 days and 24 hours, 100% charge under 24 hours or for no-shows).'}
           </span>
         </label>
         {showTermsError && !agreedToTerms && (

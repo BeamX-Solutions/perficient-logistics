@@ -144,9 +144,9 @@ export function TermsPage() {
 
   const notes: string[] = [
     'Driver and fuel included in all hires.',
-    'No refund after cancellation.',
-    'Cancellations or no-shows will incur 100% of the total payable amount.',
-    'If you cancel at least 24 hours in advance, only 50% of the total payable amount will be charged.',
+    'Cancellations made more than 3 days (72 hours) before the reservation will receive a full refund.',
+    'Cancellations made between 3 days and 24 hours before the reservation will be charged 50% of the total payable amount.',
+    'Cancellations made less than 24 hours before the reservation, and no-shows, will be charged 100% of the total payable amount. No refund will be given.',
     'Interstate travel costs more and is dependent on destination, vehicle model and model year.',
     'Day hire expires at 9pm; therefore, any movement after 9pm is considered as night hire.',
   ];
@@ -284,7 +284,7 @@ export function TermsPage() {
                     delayMs={400}
                     icon={<FileText className="h-5 w-5" />}
                     title="Clear cancellation terms"
-                    description="No-shows incur 100%—24h notice reduces charges to 50%." 
+                    description="Full refund 3+ days ahead, 50% charge within 3 days, 100% under 24 hours." 
                   />
                 </div>
               </div>
