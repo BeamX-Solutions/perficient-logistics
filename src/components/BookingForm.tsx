@@ -28,7 +28,9 @@ import {
   offerEndDate,
   offerSummary,
   offerVehicleLabel,
+  sameStateError,
   type Offer,
+  type OfferLocationError,
 } from '../data/offers';
 
 const WHATSAPP_NUMBER = '2348052702261';
@@ -148,6 +150,15 @@ const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefin
 interface LatLon {
   lat: number;
   lon: number;
+  /** State from Google's address details, e.g. "Lagos" or "Federal Capital Territory". */
+  state?: string;
+}
+
+function stateOf(components: google.maps.GeocoderAddressComponent[] | undefined): string | undefined {
+  const name = components?.find((c) => c.types.includes('administrative_area_level_1'))?.long_name;
+  if (!name) return undefined;
+  if (/federal capital territory/i.test(name)) return 'Abuja (FCT)';
+  return name.replace(/\s+State$/i, '');
 }
 
 function haversineDistance(a: LatLon, b: LatLon): number {
@@ -264,7 +275,7 @@ function LocationSearchInput({
 
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: 'ng' },
-        fields: ['formatted_address', 'geometry', 'name'],
+        fields: ['formatted_address', 'geometry', 'name', 'address_components'],
       });
 
       autocomplete.addListener('place_changed', () => {
@@ -286,6 +297,7 @@ function LocationSearchInput({
           onCoordinatesChange?.({
             lat: place.geometry.location.lat(),
             lon: place.geometry.location.lng(),
+            state: stateOf(place.address_components),
           });
         } else {
           onCoordinatesChange?.(null);
@@ -392,8 +404,11 @@ function StepTripDetails({
   onCoordsChange,
   showErrors,
   onRemoveOffer,
+  locationError,
 }: {
   onRemoveOffer: () => void;
+  /** Why the addresses don't qualify for the selected offer, if they don't. */
+  locationError: OfferLocationError | null;
   formData: WizardFormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onLocationChange: (field: 'pickupLocation' | 'dropoffLocation', value: string) => void;
@@ -463,6 +478,12 @@ function StepTripDetails({
           />
         </div>
       </div>
+
+      {locationError && (showErrors || locationError.kind === 'interstate') && (
+        <p role="alert" className="text-sm text-red-500">
+          {locationError.message}
+        </p>
+      )}
 
       {/* Dates & Times */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1311,6 +1332,12 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
     };
   }, [pickupCoords, dropoffCoords]);
 
+  // December offers are for travel within one state.
+  const selectedOffer = offerById(formData.offer);
+  const offerLocationError = selectedOffer
+    ? sameStateError(pickupCoords, dropoffCoords, !!GOOGLE_MAPS_KEY && !!window.google?.maps?.places)
+    : null;
+
   // Prefer Google's driving distance; fall back to a straight line only if that lookup failed.
   const distance: DistanceEstimate | null = route
     ? { km: route.km, minutes: route.minutes, byRoad: true }
@@ -1346,7 +1373,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
           !formData.dropoffDate ||
           !formData.pickupDate ||
           formData.dropoffDate >= formData.pickupDate;
-        return basicValid && dropoffDateValid;
+        return basicValid && dropoffDateValid && !offerLocationError;
       }
       case 2:
         return !!(formData.vehicleCategory && formData.selectedVehicle);
@@ -1514,6 +1541,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
                     onCoordsChange={handleCoordsChange}
                     showErrors={showStepErrors}
                     onRemoveOffer={removeOffer}
+                    locationError={offerLocationError}
                   />
                 )}
 

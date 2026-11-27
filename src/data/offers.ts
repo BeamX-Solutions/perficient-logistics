@@ -37,7 +37,7 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 170000,
     price: 450000,
-    includes: ['Toyota Prado with professional driver', '3 days, 10 hours per day'],
+    includes: ['Toyota Prado with professional driver', '3 days, 10 hours per day', 'Within one state, no interstate travel'],
     paystackUrl: paymentUrl(import.meta.env.VITE_PAYSTACK_PRADO_OFFER_URL),
   },
   {
@@ -50,7 +50,7 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 80000,
     price: 500000,
-    includes: ['Car, driver and fuel included', '7 days, 10 hours per day'],
+    includes: ['Car, driver and fuel included', '7 days, 10 hours per day', 'Within one state, no interstate travel'],
     paystackUrl: paymentUrl(import.meta.env.VITE_PAYSTACK_SEDAN_OFFER_URL),
   },
 ];
@@ -79,6 +79,40 @@ export const offerVehicleLabel = (o: Offer, vehicle: string) => `${vehicle} (${o
 /** One line for the booking record and the staff email. */
 export function offerSummary(o: Offer) {
   return `December offer: ${o.title}, ${formatNaira(o.price)} for ${o.days} days (${o.hoursPerDay} hrs/day)`;
+}
+
+/** A picked address: its position and, when Google knows it, its state. */
+export interface PlacePoint {
+  lat: number;
+  lon: number;
+  state?: string;
+}
+
+export interface OfferLocationError {
+  /** 'interstate' is shown straight away; 'unverified' only once the guest tries to continue. */
+  kind: 'interstate' | 'unverified';
+  message: string;
+}
+
+/**
+ * December offers cover travel within one state only. Returns why the trip
+ * doesn't qualify, or null when it does. `canVerify` is false when address
+ * suggestions are unavailable, in which case staff check it on confirmation.
+ */
+export function sameStateError(
+  pickup: PlacePoint | null,
+  dropoff: PlacePoint | null,
+  canVerify: boolean,
+): OfferLocationError | null {
+  if (!pickup || !dropoff) {
+    return canVerify
+      ? { kind: 'unverified', message: 'Choose both addresses from the suggestions so we can confirm they are in the same state.' }
+      : null;
+  }
+  if (pickup.state && dropoff.state && pickup.state !== dropoff.state) {
+    return { kind: 'interstate', message: `December offers cover trips within one state only. Your pickup is in ${pickup.state} and your drop-off is in ${dropoff.state}. Choose a drop-off in ${pickup.state}, or book at regular rates for interstate travel.` };
+  }
+  return null;
 }
 
 /** Last day of the package, counting the pickup day as day one. */
