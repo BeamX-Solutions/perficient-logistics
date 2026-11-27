@@ -161,6 +161,39 @@ function haversineDistance(a: LatLon, b: LatLon): number {
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
+interface Route {
+  km: number;
+  minutes: number;
+}
+
+// Driving distance and time from Google, so the estimate follows the roads
+// rather than a straight line (Lagos trips around the lagoon run much longer).
+async function drivingRoute(from: LatLon, to: LatLon): Promise<Route | null> {
+  if (!GOOGLE_MAPS_KEY) return null;
+  await loadGoogleMapsScript();
+  const { rows } = await new window.google.maps.DistanceMatrixService().getDistanceMatrix({
+    origins: [{ lat: from.lat, lng: from.lon }],
+    destinations: [{ lat: to.lat, lng: to.lon }],
+    travelMode: window.google.maps.TravelMode.DRIVING,
+  });
+  const el = rows[0]?.elements[0];
+  if (!el || el.status !== 'OK') return null;
+  return { km: el.distance.value / 1000, minutes: el.duration.value / 60 };
+}
+
+interface DistanceEstimate {
+  km: number;
+  minutes: number | null;
+  byRoad: boolean;
+}
+
+function distanceText(d: DistanceEstimate): string {
+  if (!d.byRoad) return `About ${Math.round(d.km)} km (straight line)`;
+  const mins = Math.round(d.minutes ?? 0);
+  const time = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
+  return `About ${Math.round(d.km)} km by road, ${time} drive`;
+}
+
 // Load Google Maps script once
 let googleMapsLoaded = false;
 let googleMapsLoadPromise: Promise<void> | null = null;
@@ -860,7 +893,7 @@ function StepReview({
   agreedToTerms: boolean;
   onToggleTerms: () => void;
   showTermsError: boolean;
-  estimatedDistance: number | null;
+  estimatedDistance: string | null;
 }) {
   const categoryInfo = vehicleCategories.find((c) => c.id === formData.vehicleCategory);
   const vehiclePrice = formData.selectedVehicle
@@ -920,10 +953,10 @@ function StepReview({
             <span className="text-gray-500">Passengers: </span>
             <span className="font-medium text-gray-900">{formData.passengers}</span>
           </div>
-          {estimatedDistance !== null && (
-            <div>
+          {estimatedDistance && (
+            <div className="sm:col-span-2">
               <span className="text-gray-500">Est. Distance: </span>
-              <span className="font-medium text-blue-600">{Math.round(estimatedDistance)} km</span>
+              <span className="font-medium text-blue-600">{estimatedDistance}</span>
             </div>
           )}
         </div>
@@ -1262,8 +1295,29 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
     else setDropoffCoords(coords);
   };
 
-  const estimatedDistance =
-    pickupCoords && dropoffCoords ? haversineDistance(pickupCoords, dropoffCoords) : null;
+  // Ask Google for the driving route whenever either end changes.
+  const [route, setRoute] = useState<Route | null>(null);
+  useEffect(() => {
+    setRoute(null);
+    if (!pickupCoords || !dropoffCoords) return;
+    let stale = false;
+    drivingRoute(pickupCoords, dropoffCoords)
+      .then((r) => {
+        if (!stale) setRoute(r);
+      })
+      .catch((err) => console.error('Driving distance lookup failed:', err));
+    return () => {
+      stale = true;
+    };
+  }, [pickupCoords, dropoffCoords]);
+
+  // Prefer Google's driving distance; fall back to a straight line only if that lookup failed.
+  const distance: DistanceEstimate | null = route
+    ? { km: route.km, minutes: route.minutes, byRoad: true }
+    : pickupCoords && dropoffCoords
+      ? { km: haversineDistance(pickupCoords, dropoffCoords), minutes: null, byRoad: false }
+      : null;
+  const estimatedDistance = distance ? distanceText(distance) : null;
 
   const handleCategorySelect = (categoryId: string) => {
     setFormData((prev) => ({
@@ -1397,7 +1451,8 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
             phoneNumber: formData.phoneNumber,
             email: formData.email,
             specialRequest: requestWithOffer(formData),
-            estimatedDistance: estimatedDistance ? Math.round(estimatedDistance) : null,
+            estimatedDistance: distance ? Math.round(distance.km) : null,
+            estimatedDistanceText: estimatedDistance,
           }),
         });
 
