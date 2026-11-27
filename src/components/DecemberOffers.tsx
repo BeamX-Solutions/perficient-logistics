@@ -97,7 +97,8 @@ export function OffersBanner({ onOpen }: { onOpen: () => void }) {
         className="w-full max-w-7xl mx-auto flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium hover:underline"
       >
         <Gift className="w-4 h-4 shrink-0" />
-        <span>
+        <span className="sm:hidden">December offers: save ₦60,000. Tap to see</span>
+        <span className="hidden sm:inline">
           December offers: Prado 3 days for {formatNaira(OFFERS[0].price)}, Sedan 1 week for{' '}
           {formatNaira(OFFERS[1].price)}. Save ₦60,000.
         </span>

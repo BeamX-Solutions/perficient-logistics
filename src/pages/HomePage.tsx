@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { BookingForm } from '../components/BookingForm';
 import { DecemberOffers, OffersBanner, OffersPopup } from '../components/DecemberOffers';
 import { offersActive } from '../data/offers';
+import { STICKY_TOP_ID, scrollToSection } from '../lib/scroll';
 
 // Show the offers pop-up once per visit; closing it keeps it closed until the tab is closed.
 const POPUP_SEEN_KEY = 'perficient-december-offers-seen';
@@ -33,7 +34,7 @@ export function HomePage() {
   const [selectedService, setSelectedService] = useState<string>('Airport Shuttle Transfers');
 
   const handleBookRideClick = () => {
-    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
+    scrollToSection('booking-form');
   };
 
   const [selectedOffer, setSelectedOffer] = useState('');
@@ -59,8 +60,11 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <OffersBanner onOpen={() => setPopupOpen(true)} />
-      <Header onBookRideClick={handleBookRideClick} />
+      {/* Banner and header stay pinned to the top together while scrolling. */}
+      <div id={STICKY_TOP_ID} className="sticky top-0 z-50">
+        <OffersBanner onOpen={() => setPopupOpen(true)} />
+        <Header onBookRideClick={handleBookRideClick} />
+      </div>
       <Hero onBookRideClick={handleBookRideClick} />
       <Services onSelectService={handleSelectService} />
       <DecemberOffers selectedOfferId={selectedOffer} onSelectOffer={handleSelectOffer} />

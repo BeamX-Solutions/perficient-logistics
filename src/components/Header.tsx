@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { scrollToSection } from '../lib/scroll';
 
 interface HeaderProps {
   onBookRideClick: () => void;
 }
 
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const headerOffset = 80;
-  const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-  window.scrollTo({ top, behavior: 'smooth' });
-}
 
 export function Header({ onBookRideClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,7 +16,7 @@ export function Header({ onBookRideClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-gray-50 shadow-sm sticky top-0 z-50">
+    <header className="bg-gray-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 transition-transform hover:scale-105 duration-300">
