@@ -16,9 +16,21 @@ import {
   ExternalLink,
   CheckCircle2,
   MessageCircle,
+  Gift,
+  X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { vehicleCategories } from '../data/vehicleData';
+import {
+  formatNaira,
+  offerById,
+  offerEndDate,
+  offerSummary,
+  offerVehicleLabel,
+  sameStateError,
+  type Offer,
+  type OfferLocationError,
+} from '../data/offers';
 
 const WHATSAPP_NUMBER = '2348052702261';
 
@@ -33,6 +45,9 @@ function getTodayString(): string {
 interface BookingFormProps {
   embedded?: boolean;
   selectedService?: string;
+  /** December offer chosen from the offer cards ('' for regular rates). */
+  offerId?: string;
+  onOfferChange?: (offerId: string) => void;
 }
 
 interface WizardFormData {
@@ -50,6 +65,8 @@ interface WizardFormData {
   phoneNumber: string;
   email: string;
   specialRequest: string;
+  /** Id of the December offer being booked, '' for regular rates. */
+  offer: string;
 }
 
 const INITIAL_FORM_DATA: WizardFormData = {
@@ -67,7 +84,42 @@ const INITIAL_FORM_DATA: WizardFormData = {
   phoneNumber: '',
   email: '',
   specialRequest: '',
+  offer: '',
 };
+
+/** Special request as stored and emailed: the offer leads so staff see it first. */
+function requestWithOffer(formData: WizardFormData): string {
+  const offer = offerById(formData.offer);
+  return [offer && offerSummary(offer), formData.specialRequest].filter(Boolean).join('\n');
+}
+
+function OfferBanner({ offer, onRemove }: { offer: Offer; onRemove?: () => void }) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 mb-4">
+      <div className="flex items-start gap-3">
+        <Gift className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold text-gray-900">
+            December offer: {offer.title} ({offer.tagline})
+          </p>
+          <p className="text-gray-600">
+            {formatNaira(offer.price)} for {offer.days} days, {offer.hoursPerDay} hours per day
+          </p>
+        </div>
+      </div>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove offer and use regular rates"
+          className="text-gray-400 hover:text-gray-700"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 const STEPS = [
   { number: 1, label: 'Trip Details', shortLabel: 'Trip' },
@@ -97,6 +149,15 @@ const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefin
 interface LatLon {
   lat: number;
   lon: number;
+  /** State from Google's address details, e.g. "Lagos" or "Federal Capital Territory". */
+  state?: string;
+}
+
+function stateOf(components: google.maps.GeocoderAddressComponent[] | undefined): string | undefined {
+  const name = components?.find((c) => c.types.includes('administrative_area_level_1'))?.long_name;
+  if (!name) return undefined;
+  if (/federal capital territory/i.test(name)) return 'Abuja (FCT)';
+  return name.replace(/\s+State$/i, '');
 }
 
 function haversineDistance(a: LatLon, b: LatLon): number {
@@ -108,6 +169,39 @@ function haversineDistance(a: LatLon, b: LatLon): number {
   const sinLon = Math.sin(dLon / 2);
   const h = sinLat * sinLat + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLon * sinLon;
   return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+interface Route {
+  km: number;
+  minutes: number;
+}
+
+// Driving distance and time from Google, so the estimate follows the roads
+// rather than a straight line (Lagos trips around the lagoon run much longer).
+async function drivingRoute(from: LatLon, to: LatLon): Promise<Route | null> {
+  if (!GOOGLE_MAPS_KEY) return null;
+  await loadGoogleMapsScript();
+  const { rows } = await new window.google.maps.DistanceMatrixService().getDistanceMatrix({
+    origins: [{ lat: from.lat, lng: from.lon }],
+    destinations: [{ lat: to.lat, lng: to.lon }],
+    travelMode: window.google.maps.TravelMode.DRIVING,
+  });
+  const el = rows[0]?.elements[0];
+  if (!el || el.status !== 'OK') return null;
+  return { km: el.distance.value / 1000, minutes: el.duration.value / 60 };
+}
+
+interface DistanceEstimate {
+  km: number;
+  minutes: number | null;
+  byRoad: boolean;
+}
+
+function distanceText(d: DistanceEstimate): string {
+  if (!d.byRoad) return `About ${Math.round(d.km)} km (straight line)`;
+  const mins = Math.round(d.minutes ?? 0);
+  const time = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
+  return `About ${Math.round(d.km)} km by road, ${time} drive`;
 }
 
 // Load Google Maps script once
@@ -180,7 +274,7 @@ function LocationSearchInput({
 
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: 'ng' },
-        fields: ['formatted_address', 'geometry', 'name'],
+        fields: ['formatted_address', 'geometry', 'name', 'address_components'],
       });
 
       autocomplete.addListener('place_changed', () => {
@@ -202,6 +296,7 @@ function LocationSearchInput({
           onCoordinatesChange?.({
             lat: place.geometry.location.lat(),
             lon: place.geometry.location.lng(),
+            state: stateOf(place.address_components),
           });
         } else {
           onCoordinatesChange?.(null);
@@ -307,7 +402,12 @@ function StepTripDetails({
   onLocationChange,
   onCoordsChange,
   showErrors,
+  onRemoveOffer,
+  locationError,
 }: {
+  onRemoveOffer: () => void;
+  /** Why the addresses don't qualify for the selected offer, if they don't. */
+  locationError: OfferLocationError | null;
   formData: WizardFormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onLocationChange: (field: 'pickupLocation' | 'dropoffLocation', value: string) => void;
@@ -322,8 +422,16 @@ function StepTripDetails({
   const dropoffDateInvalid =
     formData.dropoffDate && formData.pickupDate && formData.dropoffDate < formData.pickupDate;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="space-y-4">
+      {offer && <OfferBanner offer={offer} onRemove={onRemoveOffer} />}
+      {offer && (
+        <p className="-mt-2 text-xs text-gray-500">
+          Your drop-off date is set to the last day of the package when you pick a date.
+        </p>
+      )}
       {/* Service Type */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -369,6 +477,12 @@ function StepTripDetails({
           />
         </div>
       </div>
+
+      {locationError && (showErrors || locationError.kind === 'interstate') && (
+        <p role="alert" className="text-sm text-red-500">
+          {locationError.message}
+        </p>
+      )}
 
       {/* Dates & Times */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -484,13 +598,61 @@ function StepVehicleCategory({
   onCategorySelect,
   onVehicleSelect,
   showErrors,
+  onRemoveOffer,
 }: {
   formData: WizardFormData;
   onCategorySelect: (categoryId: string) => void;
   onVehicleSelect: (categoryId: string, vehicleLabel: string) => void;
   showErrors: boolean;
+  onRemoveOffer: () => void;
 }) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const offer = offerById(formData.offer);
+
+  if (offer) {
+    return (
+      <div>
+        <OfferBanner offer={offer} />
+        <p className="text-sm text-gray-600 mb-3">Choose your vehicle for this package.</p>
+        {showErrors && !formData.selectedVehicle && (
+          <p className="text-sm text-red-500 mb-3">Please select a vehicle to continue.</p>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          {offer.vehicles.map((vehicle) => {
+            const label = offerVehicleLabel(offer, vehicle);
+            const isSelected = formData.selectedVehicle === label;
+            return (
+              <label
+                key={vehicle}
+                className={`flex items-center gap-3 rounded-xl border-2 p-4 cursor-pointer transition-colors ${
+                  isSelected ? 'border-blue-500 bg-blue-50/50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="selectedVehicle"
+                  value={label}
+                  checked={isSelected}
+                  onChange={() => onVehicleSelect(offer.categoryId, label)}
+                  className="w-4 h-4 text-blue-500"
+                />
+                <span className="font-medium text-gray-900">{vehicle}</span>
+              </label>
+            );
+          })}
+        </div>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={onRemoveOffer}
+            className="text-sm font-medium text-blue-500 hover:text-blue-700"
+          >
+            Book at regular rates instead
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const toggleExpand = (categoryId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -751,18 +913,21 @@ function StepReview({
   agreedToTerms: boolean;
   onToggleTerms: () => void;
   showTermsError: boolean;
-  estimatedDistance: number | null;
+  estimatedDistance: string | null;
 }) {
   const categoryInfo = vehicleCategories.find((c) => c.id === formData.vehicleCategory);
   const vehiclePrice = formData.selectedVehicle
     ? getVehiclePrice(formData.vehicleCategory, formData.selectedVehicle)
     : null;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="space-y-5">
       <p className="text-sm text-gray-600 mb-2">
         Review your booking details before submitting.
       </p>
+      {offer && <OfferBanner offer={offer} />}
 
       {/* Trip Details */}
       <div className="bg-gray-50 rounded-xl p-5">
@@ -808,10 +973,10 @@ function StepReview({
             <span className="text-gray-500">Passengers: </span>
             <span className="font-medium text-gray-900">{formData.passengers}</span>
           </div>
-          {estimatedDistance !== null && (
-            <div>
+          {estimatedDistance && (
+            <div className="sm:col-span-2">
               <span className="text-gray-500">Est. Distance: </span>
-              <span className="font-medium text-blue-600">{Math.round(estimatedDistance)} km</span>
+              <span className="font-medium text-blue-600">{estimatedDistance}</span>
             </div>
           )}
         </div>
@@ -841,7 +1006,11 @@ function StepReview({
                 <span className="text-gray-500">Vehicle: </span>
                 <span className="font-medium text-gray-900">{formData.selectedVehicle}</span>
               </div>
-              {vehiclePrice && (
+              {offer ? (
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+                  {formatNaira(offer.price)} package
+                </span>
+              ) : vehiclePrice && (
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                   {vehiclePrice}/day
                 </span>
@@ -951,6 +1120,8 @@ function BookingConfirmation({
     ? getVehiclePrice(formData.vehicleCategory, formData.selectedVehicle)
     : null;
 
+  const offer = offerById(formData.offer);
+
   return (
     <div className="text-center py-4">
       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -975,7 +1146,14 @@ function BookingConfirmation({
               {formData.selectedVehicle || categoryInfo?.name || formData.vehicleCategory}
             </span>
           </div>
-          {vehiclePrice && (
+          {offer ? (
+            <div className="flex justify-between">
+              <span className="text-gray-500">December offer</span>
+              <span className="font-medium text-blue-600">
+                {formatNaira(offer.price)} for {offer.days} days
+              </span>
+            </div>
+          ) : vehiclePrice && (
             <div className="flex justify-between">
               <span className="text-gray-500">Rate</span>
               <span className="font-medium text-blue-600">{vehiclePrice}/day</span>
@@ -1045,7 +1223,7 @@ function StepNavigation({
 
 // ── Main BookingForm Component ──
 
-export function BookingForm({ embedded = false, selectedService }: BookingFormProps) {
+export function BookingForm({ embedded = false, selectedService, offerId = '', onOfferChange }: BookingFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<WizardFormData>({
     ...INITIAL_FORM_DATA,
@@ -1070,12 +1248,45 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     }
   }, [selectedService]);
 
+  // Apply (or drop) the December offer chosen from the offer cards.
+  useEffect(() => {
+    const offer = offerById(offerId);
+    setFormData((prev) => {
+      if (offer) {
+        if (prev.offer === offer.id) return prev;
+        return {
+          ...prev,
+          offer: offer.id,
+          serviceType: 'Full-Day Personal Chauffeur',
+          vehicleCategory: offer.categoryId,
+          selectedVehicle: offer.vehicles.length === 1 ? offerVehicleLabel(offer, offer.vehicles[0]) : '',
+          dropoffDate: offerEndDate(offer, prev.pickupDate) || prev.dropoffDate,
+        };
+      }
+      if (!prev.offer) return prev;
+      return { ...prev, offer: '', vehicleCategory: '', selectedVehicle: '', dropoffDate: '' };
+    });
+    if (offer) {
+      setCurrentStep(1);
+      setSubmitStatus('idle');
+      setConfirmedFormData(null);
+    }
+  }, [offerId]);
+
+  const removeOffer = () => onOfferChange?.('');
+
   // Handlers
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      // Offer packages run for a fixed number of days from pickup.
+      const offer = offerById(prev.offer);
+      if (name === 'pickupDate' && offer) next.dropoffDate = offerEndDate(offer, value);
+      return next;
+    });
   };
 
   const handleLocationChange = (field: 'pickupLocation' | 'dropoffLocation', value: string) => {
@@ -1087,8 +1298,35 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     else setDropoffCoords(coords);
   };
 
-  const estimatedDistance =
-    pickupCoords && dropoffCoords ? haversineDistance(pickupCoords, dropoffCoords) : null;
+  // Ask Google for the driving route whenever either end changes.
+  const [route, setRoute] = useState<Route | null>(null);
+  useEffect(() => {
+    setRoute(null);
+    if (!pickupCoords || !dropoffCoords) return;
+    let stale = false;
+    drivingRoute(pickupCoords, dropoffCoords)
+      .then((r) => {
+        if (!stale) setRoute(r);
+      })
+      .catch((err) => console.error('Driving distance lookup failed:', err));
+    return () => {
+      stale = true;
+    };
+  }, [pickupCoords, dropoffCoords]);
+
+  // December offers are for travel within one state.
+  const selectedOffer = offerById(formData.offer);
+  const offerLocationError = selectedOffer
+    ? sameStateError(pickupCoords, dropoffCoords, !!GOOGLE_MAPS_KEY && !!window.google?.maps?.places)
+    : null;
+
+  // Prefer Google's driving distance; fall back to a straight line only if that lookup failed.
+  const distance: DistanceEstimate | null = route
+    ? { km: route.km, minutes: route.minutes, byRoad: true }
+    : pickupCoords && dropoffCoords
+      ? { km: haversineDistance(pickupCoords, dropoffCoords), minutes: null, byRoad: false }
+      : null;
+  const estimatedDistance = distance ? distanceText(distance) : null;
 
   const handleCategorySelect = (categoryId: string) => {
     setFormData((prev) => ({
@@ -1117,7 +1355,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           !formData.dropoffDate ||
           !formData.pickupDate ||
           formData.dropoffDate >= formData.pickupDate;
-        return basicValid && dropoffDateValid;
+        return basicValid && dropoffDateValid && !offerLocationError;
       }
       case 2:
         return !!(formData.vehicleCategory && formData.selectedVehicle);
@@ -1168,6 +1406,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
     setConfirmedFormData(null);
     setPickupCoords(null);
     setDropoffCoords(null);
+    onOfferChange?.('');
   };
 
   // Submit
@@ -1196,7 +1435,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
           full_name: formData.fullName,
           phone_number: formData.phoneNumber,
           email: formData.email,
-          special_request: formData.specialRequest || null,
+          special_request: requestWithOffer(formData) || null,
         },
       ]);
 
@@ -1220,8 +1459,9 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
             fullName: formData.fullName,
             phoneNumber: formData.phoneNumber,
             email: formData.email,
-            specialRequest: formData.specialRequest,
-            estimatedDistance: estimatedDistance ? Math.round(estimatedDistance) : null,
+            specialRequest: requestWithOffer(formData),
+            estimatedDistance: distance ? Math.round(distance.km) : null,
+            estimatedDistanceText: estimatedDistance,
           }),
         });
 
@@ -1282,6 +1522,8 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onLocationChange={handleLocationChange}
                     onCoordsChange={handleCoordsChange}
                     showErrors={showStepErrors}
+                    onRemoveOffer={removeOffer}
+                    locationError={offerLocationError}
                   />
                 )}
 
@@ -1291,6 +1533,7 @@ export function BookingForm({ embedded = false, selectedService }: BookingFormPr
                     onCategorySelect={handleCategorySelect}
                     onVehicleSelect={handleVehicleSelect}
                     showErrors={showStepErrors}
+                    onRemoveOffer={removeOffer}
                   />
                 )}
 

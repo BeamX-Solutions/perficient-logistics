@@ -1,5 +1,8 @@
 import { Resend } from 'resend';
 
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return {
@@ -37,6 +40,7 @@ export const handler = async (event) => {
       email,
       specialRequest,
       estimatedDistance,
+      estimatedDistanceText,
       botField,
     } = body;
 
@@ -61,7 +65,13 @@ export const handler = async (event) => {
       <p><strong>Pickup Time:</strong> ${pickupTime || 'N/A'}</p>
       <p><strong>Dropoff Location:</strong> ${dropoffLocation || 'N/A'}</p>
       <p><strong>Dropoff Date:</strong> ${dropoffDate || 'N/A'}</p>
-      ${estimatedDistance ? `<p><strong>Estimated Distance:</strong> ${estimatedDistance} km</p>` : ''}
+      ${
+        estimatedDistanceText
+          ? `<p><strong>Estimated Distance:</strong> ${escapeHtml(estimatedDistanceText)}</p>`
+          : estimatedDistance
+            ? `<p><strong>Estimated Distance:</strong> ${estimatedDistance} km</p>`
+            : ''
+      }
       <hr />
       <p><strong>Special Request:</strong></p>
       <p>${specialRequest ? specialRequest.replace(/\n/g, '<br />') : 'None'}</p>
