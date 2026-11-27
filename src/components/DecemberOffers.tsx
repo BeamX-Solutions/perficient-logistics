@@ -1,4 +1,5 @@
-import { Check, CreditCard, Gift } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Check, CreditCard, Gift, X } from 'lucide-react';
 import { OFFERS, formatNaira, offersActive, regularPrice, savings, type Offer } from '../data/offers';
 
 interface DecemberOffersProps {
@@ -38,7 +39,7 @@ export function DecemberOffers({ selectedOfferId, onSelectOffer }: DecemberOffer
   );
 }
 
-function OfferCard({ offer, selected, onSelect }: { offer: Offer; selected: boolean; onSelect: () => void }) {
+export function OfferCard({ offer, selected, onSelect }: { offer: Offer; selected: boolean; onSelect: () => void }) {
   return (
     <article
       className={`relative flex flex-col rounded-2xl bg-white p-6 shadow-sm border-2 transition-all ${
@@ -93,5 +94,102 @@ function OfferCard({ offer, selected, onSelect }: { offer: Offer; selected: bool
         )}
       </div>
     </article>
+  );
+}
+
+/** Slim strip above the header that reopens the offers pop-up. */
+export function OffersBanner({ onOpen }: { onOpen: () => void }) {
+  if (!offersActive()) return null;
+  return (
+    <div className="bg-blue-600 text-white">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="w-full max-w-7xl mx-auto flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium hover:underline"
+      >
+        <Gift className="w-4 h-4 shrink-0" />
+        <span>
+          December offers: Prado 3 days for {formatNaira(OFFERS[0].price)}, Sedan 1 week for{' '}
+          {formatNaira(OFFERS[1].price)}. Save ₦60,000.
+        </span>
+        <span className="hidden sm:inline font-semibold underline">See offers</span>
+      </button>
+    </div>
+  );
+}
+
+/** Pop-up shown when a visitor arrives, so the offers are the first thing they see. */
+export function OffersPopup({
+  open,
+  onClose,
+  onSelectOffer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelectOffer: (offerId: string) => void;
+}) {
+  const dialog = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onClose]);
+
+  if (!open || !offersActive()) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={onClose}>
+      <div
+        ref={dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="offers-popup-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-gray-50 p-5 pt-6 sm:p-8 shadow-2xl outline-none animate-fadeUp"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close offers"
+          className="absolute right-4 top-4 rounded-full p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-900"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="text-center mb-8 px-6">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+            <Gift className="w-3.5 h-3.5" />
+            December offers
+          </span>
+          <h2 id="offers-popup-title" className="text-2xl sm:text-3xl font-semibold text-gray-900 mt-3">
+            Festive packages, ₦60,000 off
+          </h2>
+          <p className="text-gray-500 text-sm mt-2">Available all December, while bookings last.</p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-6">
+          {OFFERS.map((offer) => (
+            <OfferCard key={offer.id} offer={offer} selected={false} onSelect={() => onSelectOffer(offer.id)} />
+          ))}
+        </div>
+
+        <div className="text-center mt-6">
+          <button type="button" onClick={onClose} className="text-sm font-medium text-gray-500 hover:text-gray-800">
+            No thanks, see regular rates
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

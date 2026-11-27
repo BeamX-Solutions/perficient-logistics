@@ -1,6 +1,26 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { BookingForm } from '../components/BookingForm';
-import { DecemberOffers } from '../components/DecemberOffers';
+import { DecemberOffers, OffersBanner, OffersPopup } from '../components/DecemberOffers';
+import { offersActive } from '../data/offers';
+
+// Show the offers pop-up once per visit; closing it keeps it closed until the tab is closed.
+const POPUP_SEEN_KEY = 'perficient-december-offers-seen';
+
+function popupAlreadySeen() {
+  try {
+    return sessionStorage.getItem(POPUP_SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markPopupSeen() {
+  try {
+    sessionStorage.setItem(POPUP_SEEN_KEY, '1');
+  } catch {
+    // Private modes can block storage; the pop-up just shows again next load.
+  }
+}
 import { Footer } from '../components/Footer';
 import { Gallery } from '../components/Gallery';
 import { Header } from '../components/Header';
@@ -17,6 +37,12 @@ export function HomePage() {
   };
 
   const [selectedOffer, setSelectedOffer] = useState('');
+  const [popupOpen, setPopupOpen] = useState(() => offersActive() && !popupAlreadySeen());
+
+  const closePopup = useCallback(() => {
+    setPopupOpen(false);
+    markPopupSeen();
+  }, []);
 
   const handleSelectService = (serviceType: string) => {
     setSelectedService(serviceType);
@@ -25,12 +51,15 @@ export function HomePage() {
   };
 
   const handleSelectOffer = (offerId: string) => {
+    closePopup();
     setSelectedOffer(offerId);
-    handleBookRideClick();
+    // Wait a frame so the pop-up has released the page scroll lock.
+    requestAnimationFrame(handleBookRideClick);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <OffersBanner onOpen={() => setPopupOpen(true)} />
       <Header onBookRideClick={handleBookRideClick} />
       <Hero onBookRideClick={handleBookRideClick} />
       <Services onSelectService={handleSelectService} />
@@ -47,6 +76,7 @@ export function HomePage() {
       <Newsletter />
       <Gallery />
       <Footer />
+      <OffersPopup open={popupOpen} onClose={closePopup} onSelectOffer={handleSelectOffer} />
     </div>
   );
 }
