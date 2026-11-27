@@ -36,7 +36,7 @@ export function Newsletter() {
               Not ready to book yet?
             </h2>
             <p className="text-3xl md:text-4xl font-bold text-white">
-              Stay in the loop!
+              Stay updated on our special offers and promos!
             </p>
           </div>
 
