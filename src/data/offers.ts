@@ -50,6 +50,7 @@ export const OFFER_TERMS: string[] = [
   'Up to 10 hours per day. Unused hours cannot be carried over to another day.',
   'Extra time beyond 10 hours in a day is charged at ₦20,000 per hour.',
   'Package days must be used consecutively.',
+  'Full payment required to secure your package.',
   'Full refund if you cancel more than 3 days (72 hours) before your start date.',
 ];
 

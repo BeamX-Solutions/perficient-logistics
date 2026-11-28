@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Calendar,
@@ -32,6 +32,7 @@ import {
   type Offer,
   type OfferLocationError,
 } from '../data/offers';
+import { newPaymentReference, savePaymentSummary } from '../lib/payments';
 
 const WHATSAPP_NUMBER = '2348052702261';
 
@@ -1107,14 +1108,19 @@ function StepReview({
       )}
 
       {/* Submit */}
-      <div className="flex justify-center pt-2">
+      <div className="flex flex-col items-center gap-2 pt-2">
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
           className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-12 py-3.5 rounded-lg font-medium text-lg transition-colors"
         >
-          {isSubmitting ? 'Submitting...' : 'Confirm & Book'}
+          {isSubmitting ? 'Submitting...' : offer ? 'Continue to payment' : 'Confirm & Book'}
         </button>
+        {offer && (
+          <p className="text-sm text-gray-500 text-center">
+            You'll pay {formatNaira(offer.price)} securely with Paystack on the next page.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1251,6 +1257,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsError, setShowTermsError] = useState(false);
   const [confirmedFormData, setConfirmedFormData] = useState<WizardFormData | null>(null);
+  const navigate = useNavigate();
 
   // Sync selectedService prop
   useEffect(() => {
@@ -1433,6 +1440,11 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
+    // December offers are paid in full through Paystack after the booking is saved.
+    const offer = offerById(formData.offer);
+    const paymentReference = offer ? newPaymentReference() : null;
+    const paymentUrl = paymentReference ? `${window.location.origin}/pay/${paymentReference}` : undefined;
+
     try {
       const { error } = await supabase.from('bookings').insert([
         {
@@ -1450,6 +1462,11 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
           phone_number: formData.phoneNumber,
           email: formData.email,
           special_request: requestWithOffer(formData) || null,
+          ...(offer && {
+            offer_id: offer.id,
+            payment_reference: paymentReference,
+            payment_status: 'pending',
+          }),
         },
       ]);
 
@@ -1476,6 +1493,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
             specialRequest: requestWithOffer(formData),
             estimatedDistance: distance ? Math.round(distance.km) : null,
             estimatedDistanceText: estimatedDistance,
+            ...(offer && { paymentUrl, paymentStatus: 'pending' }),
           }),
         });
 
@@ -1483,6 +1501,19 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
         console.log('send-booking-email response:', response.status, text);
       } catch (emailError) {
         console.error('Error sending booking notification email:', emailError);
+      }
+
+      if (offer && paymentReference) {
+        savePaymentSummary(paymentReference, {
+          offerId: offer.id,
+          vehicle: formData.selectedVehicle,
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          fullName: formData.fullName,
+          email: formData.email,
+        });
+        navigate(`/pay/${paymentReference}`);
+        return;
       }
 
       setConfirmedFormData({ ...formData });

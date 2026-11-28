@@ -1,0 +1,4 @@
+# Build and publish settings live in the Netlify UI.
+# esbuild lets the payment functions import src/data/offers.ts.
+[functions]
+  node_bundler = "esbuild"
