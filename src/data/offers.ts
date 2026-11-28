@@ -26,7 +26,7 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 170000,
     price: 450000,
-    includes: ['Toyota Prado with professional driver', '3 days, 10 hours per day', 'Within one state, no interstate travel'],
+    includes: ['Toyota Prado with professional driver', '3 consecutive days, 10 hours per day', 'Within Lagos or Abuja, no interstate travel'],
   },
   {
     id: 'sedan-1-week',
@@ -38,9 +38,24 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 80000,
     price: 500000,
-    includes: ['Car, driver and fuel included', '7 days, 10 hours per day', 'Within one state, no interstate travel'],
+    includes: ['Car, driver and fuel included', '7 consecutive days, 10 hours per day', 'Within Lagos or Abuja, no interstate travel'],
   },
 ];
+
+/** Terms and conditions shown with the offers and agreed to at booking. */
+export const OFFER_TERMS: string[] = [
+  'Available in Lagos and Abuja only.',
+  'Travel must stay within the same state. No interstate trips.',
+  'Every package comes with a professional driver.',
+  'Up to 10 hours per day. Unused hours cannot be carried over to another day.',
+  'Extra time beyond 10 hours in a day is charged at ₦20,000 per hour.',
+  'Package days must be used consecutively.',
+  'Full payment required to secure your package.',
+  'Full refund if you cancel more than 3 days (72 hours) before your start date.',
+];
+
+/** States the offers run in, as named by stateOf() in BookingForm. */
+export const OFFER_STATES = ['Lagos', 'Abuja (FCT)'];
 
 /** Offers stop showing once December 2026 is over (Lagos time). */
 export const OFFERS_END = new Date('2027-01-01T00:00:00+01:00');
@@ -76,8 +91,8 @@ export interface PlacePoint {
 }
 
 export interface OfferLocationError {
-  /** 'interstate' is shown straight away; 'unverified' only once the guest tries to continue. */
-  kind: 'interstate' | 'unverified';
+  /** 'region' and 'interstate' are shown straight away; 'unverified' only once the guest tries to continue. */
+  kind: 'region' | 'interstate' | 'unverified';
   message: string;
 }
 
@@ -95,6 +110,14 @@ export function sameStateError(
     return canVerify
       ? { kind: 'unverified', message: 'Choose both addresses from the suggestions so we can confirm they are in the same state.' }
       : null;
+  }
+  for (const [label, point] of [['pickup', pickup], ['drop-off', dropoff]] as const) {
+    if (point.state && !OFFER_STATES.includes(point.state)) {
+      return {
+        kind: 'region',
+        message: `December offers are available in Lagos and Abuja only. Your ${label} is in ${point.state}. Choose an address in Lagos or Abuja, or book at regular rates.`,
+      };
+    }
   }
   if (pickup.state && dropoff.state && pickup.state !== dropoff.state) {
     return { kind: 'interstate', message: `December offers cover trips within one state only. Your pickup is in ${pickup.state} and your drop-off is in ${dropoff.state}. Choose a drop-off in ${pickup.state}, or book at regular rates for interstate travel.` };

@@ -41,6 +41,8 @@ export const handler = async (event) => {
       specialRequest,
       estimatedDistance,
       estimatedDistanceText,
+      paymentUrl,
+      paymentStatus,
       botField,
     } = body;
 
@@ -52,6 +54,13 @@ export const handler = async (event) => {
       };
     }
 
+    // Only links back to this site's own payment page are put in the email.
+    const safePaymentUrl =
+      typeof paymentUrl === 'string' && /^https?:\/\/[^\s"'<>]+\/pay\/PL-[0-9a-f-]{36}$/i.test(paymentUrl)
+        ? paymentUrl
+        : null;
+    const awaitingPayment = paymentStatus === 'pending' && safePaymentUrl;
+
     const bookingDetails = `
       <h3 style="color: #333;">Booking Details</h3>
       <p><strong>Service Type:</strong> ${serviceType || 'N/A'}</p>
@@ -59,6 +68,7 @@ export const handler = async (event) => {
       <p><strong>Selected Vehicle:</strong> ${selectedVehicle || 'No specific vehicle selected'}</p>
       <p><strong>Passengers:</strong> ${passengers || 'N/A'}</p>
       <p><strong>Ride Type:</strong> ${rideType || 'N/A'}</p>
+      ${awaitingPayment ? '<p><strong>Payment:</strong> Awaiting Paystack payment</p>' : ''}
       <hr />
       <p><strong>Pickup Location:</strong> ${pickupLocation || 'N/A'}</p>
       <p><strong>Pickup Date:</strong> ${pickupDate || 'N/A'}</p>
@@ -120,6 +130,14 @@ export const handler = async (event) => {
             <p>Hi ${fullName || 'Valued Customer'},</p>
 
             <p>Thank you for booking with Perficient Logistics! We've received your booking request and will be in touch shortly to confirm all details.</p>
+            ${
+              awaitingPayment
+                ? `<p><strong>Your December package is secured once payment is complete.</strong> If you haven't paid yet, you can do so here:</p>
+            <p style="text-align: center; margin: 24px 0;">
+              <a href="${escapeHtml(safePaymentUrl)}" style="background-color: #1e40af; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Complete payment</a>
+            </p>`
+                : ''
+            }
 
             <h3 style="color: #333; margin-top: 30px;">Your Booking Details</h3>
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">

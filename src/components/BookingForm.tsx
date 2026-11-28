@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Calendar,
@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { OfferTerms } from './DecemberOffers';
 import { vehicleCategories } from '../data/vehicleData';
 import {
   formatNaira,
@@ -31,6 +32,7 @@ import {
   type Offer,
   type OfferLocationError,
 } from '../data/offers';
+import { newPaymentReference, savePaymentSummary } from '../lib/payments';
 
 const WHATSAPP_NUMBER = '2348052702261';
 
@@ -478,7 +480,7 @@ function StepTripDetails({
         </div>
       </div>
 
-      {locationError && (showErrors || locationError.kind === 'interstate') && (
+      {locationError && (showErrors || locationError.kind !== 'unverified') && (
         <p role="alert" className="text-sm text-red-500">
           {locationError.message}
         </p>
@@ -517,7 +519,8 @@ function StepTripDetails({
 
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
-            Drop-off Date <span className="text-gray-400 font-normal">(optional)</span>
+            Drop-off Date{' '}
+            <span className="text-gray-400 font-normal">{offer ? '(last day of package)' : '(optional)'}</span>
           </label>
           <div className="relative overflow-hidden">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
@@ -527,7 +530,10 @@ function StepTripDetails({
               value={formData.dropoffDate}
               onChange={onChange}
               min={formData.pickupDate || today}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none ${
+              // Offer days run back to back, so the end date follows the start date.
+              readOnly={!!offer}
+              tabIndex={offer ? -1 : undefined}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base appearance-none ${offer ? 'bg-gray-100 text-gray-600 pointer-events-none ' : ''}${
                 dropoffDateInvalid ? 'border-red-400 ring-1 ring-red-400' : 'border-gray-300'
               }`}
             />
@@ -1059,6 +1065,13 @@ function StepReview({
         </div>
       </div>
 
+      {offer && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-3">December offer terms</h3>
+          <OfferTerms />
+        </div>
+      )}
+
       {/* Terms & Conditions checkbox */}
       <div className={`rounded-xl p-4 ${showTermsError && !agreedToTerms ? 'bg-red-50 border border-red-200' : 'bg-gray-50'}`}>
         <label className="flex items-start gap-3 cursor-pointer">
@@ -1077,7 +1090,9 @@ function StepReview({
             >
               Terms & Rates
             </Link>
-            , including the cancellation policy (100% charge for no-shows, 50% if cancelled 24+ hours in advance).
+            {offer
+              ? ', and the December offer terms above.'
+              : ', including the cancellation policy (full refund if cancelled more than 3 days ahead, 50% charge between 3 days and 24 hours, 100% charge under 24 hours or for no-shows).'}
           </span>
         </label>
         {showTermsError && !agreedToTerms && (
@@ -1093,14 +1108,19 @@ function StepReview({
       )}
 
       {/* Submit */}
-      <div className="flex justify-center pt-2">
+      <div className="flex flex-col items-center gap-2 pt-2">
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
           className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-12 py-3.5 rounded-lg font-medium text-lg transition-colors"
         >
-          {isSubmitting ? 'Submitting...' : 'Confirm & Book'}
+          {isSubmitting ? 'Submitting...' : offer ? 'Continue to payment' : 'Confirm & Book'}
         </button>
+        {offer && (
+          <p className="text-sm text-gray-500 text-center">
+            You'll pay {formatNaira(offer.price)} securely with Paystack on the next page.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1237,6 +1257,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsError, setShowTermsError] = useState(false);
   const [confirmedFormData, setConfirmedFormData] = useState<WizardFormData | null>(null);
+  const navigate = useNavigate();
 
   // Sync selectedService prop
   useEffect(() => {
@@ -1260,7 +1281,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
           serviceType: 'Full-Day Personal Chauffeur',
           vehicleCategory: offer.categoryId,
           selectedVehicle: offer.vehicles.length === 1 ? offerVehicleLabel(offer, offer.vehicles[0]) : '',
-          dropoffDate: offerEndDate(offer, prev.pickupDate) || prev.dropoffDate,
+          dropoffDate: offerEndDate(offer, prev.pickupDate),
         };
       }
       if (!prev.offer) return prev;
@@ -1419,6 +1440,11 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
+    // December offers are paid in full through Paystack after the booking is saved.
+    const offer = offerById(formData.offer);
+    const paymentReference = offer ? newPaymentReference() : null;
+    const paymentUrl = paymentReference ? `${window.location.origin}/pay/${paymentReference}` : undefined;
+
     try {
       const { error } = await supabase.from('bookings').insert([
         {
@@ -1436,6 +1462,11 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
           phone_number: formData.phoneNumber,
           email: formData.email,
           special_request: requestWithOffer(formData) || null,
+          ...(offer && {
+            offer_id: offer.id,
+            payment_reference: paymentReference,
+            payment_status: 'pending',
+          }),
         },
       ]);
 
@@ -1462,6 +1493,7 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
             specialRequest: requestWithOffer(formData),
             estimatedDistance: distance ? Math.round(distance.km) : null,
             estimatedDistanceText: estimatedDistance,
+            ...(offer && { paymentUrl, paymentStatus: 'pending' }),
           }),
         });
 
@@ -1469,6 +1501,19 @@ export function BookingForm({ embedded = false, selectedService, offerId = '', o
         console.log('send-booking-email response:', response.status, text);
       } catch (emailError) {
         console.error('Error sending booking notification email:', emailError);
+      }
+
+      if (offer && paymentReference) {
+        savePaymentSummary(paymentReference, {
+          offerId: offer.id,
+          vehicle: formData.selectedVehicle,
+          pickupDate: formData.pickupDate,
+          pickupTime: formData.pickupTime,
+          fullName: formData.fullName,
+          email: formData.email,
+        });
+        navigate(`/pay/${paymentReference}`);
+        return;
       }
 
       setConfirmedFormData({ ...formData });
