@@ -26,7 +26,7 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 170000,
     price: 450000,
-    includes: ['Toyota Prado with professional driver', '3 consecutive days, 10 hours per day', 'Lagos or Abuja, within one state'],
+    includes: ['Toyota Prado with professional driver', '3 consecutive days, 10 hours per day', 'Within Lagos or Abuja, no interstate travel'],
   },
   {
     id: 'sedan-1-week',
@@ -38,7 +38,7 @@ export const OFFERS: Offer[] = [
     hoursPerDay: 10,
     regularDailyRate: 80000,
     price: 500000,
-    includes: ['Car, driver and fuel included', '7 consecutive days, 10 hours per day', 'Lagos or Abuja, within one state'],
+    includes: ['Car, driver and fuel included', '7 consecutive days, 10 hours per day', 'Within Lagos or Abuja, no interstate travel'],
   },
 ];
 

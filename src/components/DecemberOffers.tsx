@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Check, Gift, X } from 'lucide-react';
+import { Check, ChevronDown, Gift, X } from 'lucide-react';
 import { OFFERS, OFFER_TERMS, formatNaira, offersActive, regularPrice, savings, type Offer } from '../data/offers';
 
 interface DecemberOffersProps {
@@ -35,10 +35,15 @@ export function DecemberOffers({ selectedOfferId, onSelectOffer }: DecemberOffer
           ))}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Offer terms and conditions</h3>
-          <OfferTerms />
-        </div>
+        <details className="group mt-6 rounded-2xl border border-gray-200 bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
+            Offer terms and conditions
+            <ChevronDown className="w-5 h-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="px-6 pb-6">
+            <OfferTerms />
+          </div>
+        </details>
       </div>
     </section>
   );
@@ -55,18 +60,63 @@ export function OfferTerms({ className = '' }: { className?: string }) {
   );
 }
 
+/** Each offer card gets its own colour so the two packages are easy to tell apart. */
+const CARD_THEMES: Record<string, {
+  card: string;
+  border: string;
+  selected: string;
+  accent: string;
+  badge: string;
+  check: string;
+  button: string;
+  buttonSelected: string;
+}> = {
+  'prado-3-day': {
+    card: 'bg-gradient-to-br from-amber-50 to-white',
+    border: 'border-amber-200 hover:border-amber-300',
+    selected: 'border-amber-600 shadow-md',
+    accent: 'text-amber-700',
+    badge: 'bg-amber-700',
+    check: 'text-amber-600',
+    button: 'bg-amber-700 hover:bg-amber-800',
+    buttonSelected: 'bg-amber-800',
+  },
+  'sedan-1-week': {
+    card: 'bg-gradient-to-br from-emerald-50 to-white',
+    border: 'border-emerald-200 hover:border-emerald-300',
+    selected: 'border-emerald-600 shadow-md',
+    accent: 'text-emerald-700',
+    badge: 'bg-emerald-700',
+    check: 'text-emerald-600',
+    button: 'bg-emerald-700 hover:bg-emerald-800',
+    buttonSelected: 'bg-emerald-800',
+  },
+};
+
+const DEFAULT_THEME = {
+  card: 'bg-white',
+  border: 'border-gray-200 hover:border-gray-300',
+  selected: 'border-blue-500 shadow-md',
+  accent: 'text-blue-600',
+  badge: 'bg-green-600',
+  check: 'text-green-600',
+  button: 'bg-blue-500 hover:bg-blue-600',
+  buttonSelected: 'bg-blue-600',
+};
+
 export function OfferCard({ offer, selected, onSelect }: { offer: Offer; selected: boolean; onSelect: () => void }) {
+  const theme = CARD_THEMES[offer.id] ?? DEFAULT_THEME;
   return (
     <article
-      className={`relative flex flex-col rounded-2xl bg-white p-6 shadow-sm border-2 transition-all ${
-        selected ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
+      className={`relative flex flex-col rounded-2xl p-6 shadow-sm border-2 transition-all ${theme.card} ${
+        selected ? theme.selected : theme.border
       }`}
     >
-      <span className="absolute -top-3 right-5 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white">
+      <span className={`absolute -top-3 right-5 rounded-full px-3 py-1 text-xs font-semibold text-white ${theme.badge}`}>
         Save {formatNaira(savings(offer))}
       </span>
 
-      <p className="text-sm font-medium text-blue-600">{offer.tagline}</p>
+      <p className={`text-sm font-medium ${theme.accent}`}>{offer.tagline}</p>
       <h3 className="text-2xl font-semibold text-gray-900 mt-1">{offer.title}</h3>
 
       <div className="mt-4 flex items-baseline gap-3">
@@ -80,7 +130,7 @@ export function OfferCard({ offer, selected, onSelect }: { offer: Offer; selecte
       <ul className="mt-4 space-y-2 text-sm text-gray-700 flex-grow">
         {offer.includes.map((item) => (
           <li key={item} className="flex items-start gap-2">
-            <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+            <Check className={`w-4 h-4 mt-0.5 shrink-0 ${theme.check}`} />
             {item}
           </li>
         ))}
@@ -91,8 +141,8 @@ export function OfferCard({ offer, selected, onSelect }: { offer: Offer; selecte
           type="button"
           onClick={onSelect}
           aria-pressed={selected}
-          className={`w-full rounded-lg px-6 py-2.5 font-medium transition-colors ${
-            selected ? 'bg-blue-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'
+          className={`w-full rounded-lg px-6 py-2.5 font-medium text-white transition-colors ${
+            selected ? theme.buttonSelected : theme.button
           }`}
         >
           {selected ? 'Selected, complete your booking below' : 'Select this offer'}
